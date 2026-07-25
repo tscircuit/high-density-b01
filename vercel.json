@@ -1,0 +1,4 @@
+{
+  "installCommand": "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --target wasm32-unknown-unknown && curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh && bun install",
+  "buildCommand": "PATH=\"$HOME/.cargo/bin:$PATH\" bun run build:site"
+}
