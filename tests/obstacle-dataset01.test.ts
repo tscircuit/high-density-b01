@@ -36,6 +36,16 @@ test("obstacle dataset 01 contains valid deterministic half-routed samples", () 
     expect(
       sample.obstacles.every((obstacle) => obstacle.type === "route"),
     ).toBe(true)
+    expect(
+      sample.obstacles.every((obstacle) => {
+        const matchingPortPoint = sample.nodeWithPortPoints.portPoints.find(
+          (portPoint) => portPoint.connectionName === obstacle.connectionName,
+        )
+        return (
+          obstacle.rootConnectionName === matchingPortPoint?.rootConnectionName
+        )
+      }),
+    ).toBe(true)
     expect(findRouteGeometryViolations(sample.obstacles)).toHaveLength(0)
   }
 })

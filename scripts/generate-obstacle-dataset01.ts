@@ -147,16 +147,27 @@ function getSourceProblemSelectionRank(sourceProblem: SourceProblem): number {
 
 function toRouteObstacle(
   route: HighDensityIntraNodeRoute,
+  rootConnectionName: string | undefined,
 ): HighDensityRouteObstacle {
   return {
     type: "route",
     connectionName: route.connectionName,
-    rootConnectionName: route.rootConnectionName,
+    rootConnectionName,
     traceThickness: route.traceThickness,
     viaDiameter: route.viaDiameter,
     route: route.route,
     vias: route.vias,
   }
+}
+
+function getRootConnectionName(
+  connectionName: string,
+  nodeWithPortPoints: NodeWithPortPoints,
+): string | undefined {
+  const matchingPortPoint = nodeWithPortPoints.portPoints.find(
+    (portPoint) => portPoint.connectionName === connectionName,
+  )
+  return matchingPortPoint?.rootConnectionName
 }
 
 function generateObstacleSample(
@@ -211,7 +222,12 @@ function generateObstacleSample(
       nodeWithPortPoints,
       preRoutedConnectionNames,
       connectionNamesToRoute,
-      obstacles: routes.map(toRouteObstacle),
+      obstacles: routes.map((route) =>
+        toRouteObstacle(
+          route,
+          getRootConnectionName(route.connectionName, nodeWithPortPoints),
+        ),
+      ),
     },
   }
 }

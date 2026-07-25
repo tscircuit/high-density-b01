@@ -20,6 +20,8 @@
     "build": "bunx tsc --noEmit",
     "test": "bun test",
     "generate:obstacle-dataset01": "bun run scripts/generate-obstacle-dataset01.ts",
+    "benchmark:obstacle-dataset01": "bun run scripts/benchmark.ts",
+    "benchmark:z04": "bun run scripts/benchmark-z04.ts",
     "benchmark:dataset02": "bun run scripts/run-dataset02-benchmark.ts --concurrency=4",
     "benchmark:dataset02:a02": "bun run scripts/run-dataset02-benchmark-a02.ts --concurrency=4",
     "benchmark:dataset02:a03": "bun run scripts/run-dataset02-benchmark-a03.ts --concurrency=4",

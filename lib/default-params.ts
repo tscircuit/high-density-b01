@@ -4,6 +4,7 @@ import type { HighDensitySolverA03Props } from "./HighDensitySolverA03/HighDensi
 import type { HighDensitySolverA05Props } from "./HighDensitySolverA05/HighDensitySolverA05"
 import type { HighDensitySolverA08Props } from "./HighDensitySolverA08/HighDensitySolverA08"
 import type { HighDensitySolverA09Props } from "./HighDensitySolverA09/HighDensitySolverA09"
+import type { HighDensitySolverB01Props } from "./HighDensitySolverB01/HighDensitySolverB01"
 
 type A08BreakoutMarginProps = Pick<
   HighDensitySolverA08Props,
@@ -162,6 +163,21 @@ export const defaultA09Params: Required<
   fullOrderSearchConnectionCountLimit: 6,
   priorityHeadSize: 4,
   maxCandidateOrders: 720,
+}
+
+export const defaultB01Params: Required<
+  Pick<
+    HighDensitySolverB01Props,
+    | "highResolutionCellSize"
+    | "highResolutionCellThickness"
+    | "lowResolutionCellSize"
+    | "traceMargin"
+    | "traceThickness"
+    | "viaDiameter"
+    | "viaMinDistFromBorder"
+  >
+> = {
+  ...defaultA03Params,
 }
 
 export function getDefaultA08BreakoutBoundaryMarginMm(
