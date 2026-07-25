@@ -1,8 +1,13 @@
 {
-  "name": "@tscircuit/high-density-a01",
+  "name": "@tscircuit/high-density-b01",
+  "description": "Obstacle-aware high-density PCB trace solver with rip-and-replace",
   "module": "lib/index.ts",
   "type": "module",
-  "version": "0.0.36",
+  "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tscircuit/high-density-b01.git"
+  },
   "exports": {
     ".": {
       "import": "./lib/index.ts",
@@ -11,8 +16,10 @@
   },
   "scripts": {
     "start": "cosmos",
-    "build:site": "bun run build && cosmos-export",
-    "build": "tsup lib/index.ts --dts --format esm",
+    "build:site": "cosmos-export",
+    "build": "bunx tsc --noEmit",
+    "test": "bun test",
+    "generate:obstacle-dataset01": "bun run scripts/generate-obstacle-dataset01.ts",
     "benchmark:dataset02": "bun run scripts/run-dataset02-benchmark.ts --concurrency=4",
     "benchmark:dataset02:a02": "bun run scripts/run-dataset02-benchmark-a02.ts --concurrency=4",
     "benchmark:dataset02:a03": "bun run scripts/run-dataset02-benchmark-a03.ts --concurrency=4",
@@ -36,15 +43,17 @@
     "@types/bun": "latest",
     "bun-match-svg": "^0.0.15",
     "graphics-debug": "^0.0.86",
-    "high-density-dataset-z04": "https://github.com/tscircuit/high-density-dataset-z04.git",
+    "high-density-dataset-z04": "https://github.com/tscircuit/high-density-dataset-z04.git#137370563bd98310f08baa78f4800cd5a6849274",
     "react-cosmos": "^7.1.1",
     "react-cosmos-plugin-vite": "^7.1.1",
-    "tsup": "^8.5.1"
+    "sharp": "0.32.6",
+    "typescript": "^5.9.3"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
   "dependencies": {
     "flatbush": "^4.5.0"
-  }
+  },
+  "trustedDependencies": ["sharp"]
 }

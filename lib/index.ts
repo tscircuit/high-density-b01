@@ -16,5 +16,6 @@ export {
   HighDensitySolverA08BreakoutSolver,
 } from "./HighDensitySolverA08/HighDensitySolverA08"
 export { HighDensitySolverA09 } from "./HighDensitySolverA09/HighDensitySolverA09"
+export * from "./obstacle-dataset-types"
 export * from "./routeGeometryValidation"
 export * from "./types"

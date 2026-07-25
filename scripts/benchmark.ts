@@ -10,6 +10,7 @@ type CliOptions = {
   solverKeys: Z04SolverKey[]
   maxIterations: number
   limit?: number
+  sample?: number
   concurrency: number
   showStats: boolean
   mode?: Z04SolverMode
@@ -34,25 +35,28 @@ type SolverSummary = {
   validCount: number
   failedCount: number
   avgDurationMs: number
+  p50DurationMs: number
+  p95DurationMs: number
   avgIterations: number
   totalWallTimeMs: number
 }
 
 const HELP_TEXT = `
-Usage: ./benchmark.sh --solver A01,A03 [options]
+Usage: ./benchmark.sh [options]
 
 Runs the dataset Z04 benchmark for the selected solvers and reports both
 per-solver results and the union of problems solved validly by any provided
 solver.
 
 Typical flow:
-  ./benchmark.sh --solver A01,A03
-  ./benchmark.sh --solver A01,A03 --limit=100
+  ./benchmark.sh
+  ./benchmark.sh --solver A01,A03 --limit 100
 
 Options:
-  --solver LIST         Required. Comma-separated solver list: A01,A02,A03,A05,A08
+  --solver LIST         Comma-separated solver list (default: A03)
   --concurrency N       Number of worker loops per solver run (default: 4)
   --limit N             Only run first N problems
+  --sample NUM          Run one 1-based problem number
   --mode MODE           Optional shared mode: default|repro|fast|strict
   --max-iterations N    Solver MAX_ITERATIONS (default: 1000000)
   --stats               Print average grid stats for each solver
@@ -129,9 +133,10 @@ function parseSolverList(value: string): Z04SolverKey[] {
 }
 
 function parseArgs(argv: string[]): CliOptions | null {
-  let solverKeys: Z04SolverKey[] | undefined
+  let solverKeys: Z04SolverKey[] = ["a03"]
   let maxIterations = 1_000_000
   let limit: number | undefined
+  let sample: number | undefined
   let concurrency = 4
   let showStats = false
   let mode: Z04SolverMode | undefined
@@ -185,6 +190,16 @@ function parseArgs(argv: string[]): CliOptions | null {
       continue
     }
 
+    if (arg === "--sample") {
+      sample = parsePositiveInteger(takeValue(), "--sample")
+      continue
+    }
+
+    if (arg.startsWith("--sample=")) {
+      sample = parsePositiveInteger(arg.slice("--sample=".length), "--sample")
+      continue
+    }
+
     if (arg === "--mode") {
       mode = parseMode(takeValue())
       continue
@@ -216,16 +231,15 @@ function parseArgs(argv: string[]): CliOptions | null {
     throw new Error(`Unknown argument: ${arg}`)
   }
 
-  if (!solverKeys) {
-    console.error("Missing required --solver argument.\n")
-    console.error(HELP_TEXT)
-    process.exit(1)
+  if (limit !== undefined && sample !== undefined) {
+    throw new Error("--limit and --sample cannot be used together")
   }
 
   return {
     solverKeys,
     maxIterations,
     limit,
+    sample,
     concurrency,
     showStats,
     mode,
@@ -244,12 +258,27 @@ function formatSolverName(solverKey: Z04SolverKey) {
   return solverKey.toUpperCase()
 }
 
+function getPercentileDurationMs(
+  results: Z04SampleResult[],
+  percentile: number,
+): number {
+  if (results.length === 0) return 0
+  const sortedDurations = results
+    .map((result) => result.durationMs)
+    .sort((firstDuration, secondDuration) => firstDuration - secondDuration)
+  const percentileIndex = Math.min(
+    sortedDurations.length - 1,
+    Math.ceil(percentile * sortedDurations.length) - 1,
+  )
+  return sortedDurations[percentileIndex]!
+}
+
 async function runSolverBenchmark(
   solverKey: Z04SolverKey,
   options: CliOptions,
-  sampleCount: number,
+  sampleIndices: number[],
 ): Promise<SolverSummary> {
-  const sampleIndices = Array.from({ length: sampleCount }, (_, index) => index)
+  const sampleCount = sampleIndices.length
   const workerCount = Math.min(options.concurrency, sampleIndices.length)
   const results: Array<Z04SampleResult | undefined> = new Array(sampleCount)
   const workerOptions: Z04WorkerOptions = {
@@ -327,7 +356,7 @@ async function runSolverBenchmark(
               : "incomplete"
 
         console.log(
-          `[${formatSolverName(solverKey)} worker ${workerIndex + 1}] problem ${result.problemId} (${result.sampleIndex + 1}/${sampleCount}): ${status} in ${result.durationMs.toFixed(1)}ms (iterations=${result.iterations}, routes=${result.routes}, violations=${result.violationCount}) | completed=${completedCount}/${processedCount} (${completedRate.toFixed(1)}%), valid=${validCount}/${processedCount} (${validRate.toFixed(1)}%)`,
+          `[${formatSolverName(solverKey)} worker ${workerIndex + 1}] problem ${result.problemId} progress=${processedCount}/${sampleCount} status=${status} duration=${(result.durationMs / 1000).toFixed(3)}s iterations=${result.iterations} routes=${result.routes} violations=${result.violationCount} completed=${completedCount}/${processedCount} (${completedRate.toFixed(1)}%) valid=${validCount}/${processedCount} (${validRate.toFixed(1)}%)`,
         )
         if (result.error) {
           console.log(`  error: ${result.error}`)
@@ -361,6 +390,8 @@ async function runSolverBenchmark(
   const avgDurationMs =
     completedResults.reduce((sum, result) => sum + result.durationMs, 0) /
     Math.max(1, completedResults.length)
+  const p50DurationMs = getPercentileDurationMs(completedResults, 0.5)
+  const p95DurationMs = getPercentileDurationMs(completedResults, 0.95)
   const avgIterations =
     completedResults.reduce((sum, result) => sum + result.iterations, 0) /
     Math.max(1, completedResults.length)
@@ -376,7 +407,9 @@ async function runSolverBenchmark(
   console.log(
     `  validRate=${((validCount / Math.max(1, completedResults.length)) * 100).toFixed(1)}%`,
   )
-  console.log(`  avgDuration=${avgDurationMs.toFixed(1)}ms`)
+  console.log(`  P50 duration=${(p50DurationMs / 1000).toFixed(3)}s`)
+  console.log(`  P95 duration=${(p95DurationMs / 1000).toFixed(3)}s`)
+  console.log(`  avg duration=${(avgDurationMs / 1000).toFixed(3)}s`)
   console.log(`  avgIterations=${avgIterations.toFixed(0)}`)
   console.log(`  wallTime=${(totalWallTimeMs / 1000).toFixed(2)}s`)
 
@@ -412,6 +445,8 @@ async function runSolverBenchmark(
     validCount,
     failedCount,
     avgDurationMs,
+    p50DurationMs,
+    p95DurationMs,
     avgIterations,
     totalWallTimeMs,
   }
@@ -421,27 +456,31 @@ async function main() {
   const options = parseArgs(process.argv.slice(2))
   if (options === null) return
 
+  if (options.sample !== undefined && options.sample > datasetZ04ProblemCount) {
+    throw new Error(`--sample must be between 1 and ${datasetZ04ProblemCount}`)
+  }
   const sampleCount =
     options.limit === undefined
       ? datasetZ04ProblemCount
       : Math.min(datasetZ04ProblemCount, options.limit)
-
-  if (sampleCount === 0) {
-    throw new Error("No problems selected. Use --limit=N with N > 0.")
-  }
+  const sampleIndices =
+    options.sample === undefined
+      ? Array.from({ length: sampleCount }, (_, index) => index)
+      : [options.sample - 1]
+  const selectedSampleCount = sampleIndices.length
 
   console.log("Dataset Z04 benchmark")
   console.log("=".repeat(72))
   console.log(
     `Solvers: ${options.solverKeys.map((solverKey) => formatSolverName(solverKey)).join(", ")}`,
   )
-  console.log(`Problems: ${sampleCount}/${datasetZ04ProblemCount}`)
-  console.log(`Typical flow: ./benchmark.sh --solver A01,A03`)
+  console.log(`Problems: ${selectedSampleCount}/${datasetZ04ProblemCount}`)
+  console.log("Typical flow: ./benchmark.sh")
 
   const solverSummaries: SolverSummary[] = []
   for (const solverKey of options.solverKeys) {
     solverSummaries.push(
-      await runSolverBenchmark(solverKey, options, sampleCount),
+      await runSolverBenchmark(solverKey, options, sampleIndices),
     )
   }
 
@@ -458,17 +497,17 @@ async function main() {
   console.log()
   console.log("Union summary:")
   console.log(
-    `  validByAnySolver=${unionValidProblemIds.size}/${sampleCount} (${((unionValidProblemIds.size / sampleCount) * 100).toFixed(1)}%)`,
+    `  validByAnySolver=${unionValidProblemIds.size}/${selectedSampleCount} (${((unionValidProblemIds.size / selectedSampleCount) * 100).toFixed(1)}%)`,
   )
   console.log(
-    `  completedByAnySolver=${unionCompletedProblemIds.size}/${sampleCount} (${((unionCompletedProblemIds.size / sampleCount) * 100).toFixed(1)}%)`,
+    `  completedByAnySolver=${unionCompletedProblemIds.size}/${selectedSampleCount} (${((unionCompletedProblemIds.size / selectedSampleCount) * 100).toFixed(1)}%)`,
   )
 
   console.log()
   console.log("Per-solver valid counts:")
   for (const summary of solverSummaries) {
     console.log(
-      `  ${formatSolverName(summary.solverKey)}=${summary.validCount}/${sampleCount} (${((summary.validCount / sampleCount) * 100).toFixed(1)}%)`,
+      `  ${formatSolverName(summary.solverKey)}=${summary.validCount}/${selectedSampleCount} (${((summary.validCount / selectedSampleCount) * 100).toFixed(1)}%)`,
     )
   }
 }
