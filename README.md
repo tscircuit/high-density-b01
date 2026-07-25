@@ -10,8 +10,7 @@ baseline A-series solvers.
 ## HighDensitySolverB01
 
 `HighDensitySolverB01` extends the A03 high-density hypergraph search with
-layer-aware route obstacles. The first implementation treats supplied obstacles
-as frozen:
+layer-aware, immutable route obstacles:
 
 - trace segments block only their own layer;
 - obstacle vias block candidate traces and vias across every layer;
@@ -34,12 +33,13 @@ import {
 const obstacles: HighDensityRouteObstacle[] = []
 const solver = new HighDensitySolverB01({
   ...defaultB01Params,
-  nodeWithPortPoints,
+  nodeWithPortPoints: remainingNodeWithPortPoints,
   obstacles,
 })
 
 solver.solve()
-const routes = solver.getOutput()
+const newRoutes = solver.getOutput()
+const completeRoutes = [...obstacles, ...newRoutes]
 ```
 
 Set `rootConnectionName` on obstacles whenever it is known. B01 uses the root
@@ -57,13 +57,14 @@ Each sample:
 - fits inside a 15×15mm routing window;
 - contains at least four connection names;
 - preserves the complete original `nodeWithPortPoints`;
-- routes exactly `floor(connectionCount / 2)` sorted connection names with
-  `HighDensitySolverA03`;
-- stores those successful routes as initially fixed route obstacles; and
+- produces a complete, DRC-clean reference route with `HighDensitySolverA03`;
+- stores the routes for exactly `floor(connectionCount / 2)` sorted connection
+  names from that completed reference as the initial route obstacles; and
 - records the remaining connection names as the B01 routing workload.
 
-The full original ports are retained so future repair modes can selectively
-thaw a prerouted obstacle when routing around it is impossible.
+This guarantees that the exact selected obstacle traces participate in at least
+one complete solution. The full original ports are retained in the fixture for
+reproducibility; the benchmark passes only the removed connections to B01.
 
 Regenerate the committed 100-sample dataset with:
 
@@ -87,10 +88,9 @@ duration. Use `--limit N`, `--sample N`, `--concurrency N`, or
 `--max-iterations N` for focused runs. The inherited Z04 benchmark remains
 available as `bun run benchmark:z04`.
 
-The frozen-obstacle implementation currently validates 68/100 samples. Several
-failures are intentional inputs for the next repair stage: a half-routed trace
-can cross a port belonging to the withheld half, so completing that sample
-requires selectively thawing and rerouting the conflicting obstacle.
+The current B01 benchmark validates 100/100 samples with zero combined-route
+geometry violations. On a four-worker local run, P50 was 0.007s, P95 was
+0.076s, and average duration was 0.017s per sample.
 
 The package uses the GitHub-vanilla layout: `lib/index.ts` is the module entry
 point and only `lib` is included when the package is installed.

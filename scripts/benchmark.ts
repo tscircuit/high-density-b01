@@ -20,9 +20,10 @@ const HELP_TEXT = `
 Usage: ./benchmark.sh [options]
 
 Runs HighDensitySolverB01 against obstacle-dataset01. Each sample contains
-frozen routes produced by A03 and asks B01 to route the remaining connections.
-A sample is valid only when all requested routes are produced and the combined
-pre-routed plus newly routed geometry has no DRC violations.
+routes selected from a complete A03 reference solution and asks B01 to route
+the remaining connections while keeping every obstacle immutable. A sample is
+valid only when every original connection is present and the complete combined
+geometry has no relaxed-DRC violations.
 
 Options:
   --concurrency N       Number of worker loops (default: 4)

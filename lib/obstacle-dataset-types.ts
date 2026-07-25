@@ -21,10 +21,12 @@ export type HighDensityObstacleDatasetSample = {
 
 export type HighDensityObstacleDataset = {
   format: "high_density_obstacle_dataset"
-  formatVersion: 1
+  formatVersion: 2
   sourceDataset: "high-density-dataset-z04"
   sourceDatasetCommit: string
   preRouter: "HighDensitySolverA03"
+  fullRoutabilityCheck: "HighDensitySolverA03"
+  obstaclesFromFullReferenceRoute: true
   routingWindowMaxWidthMm: 15
   routingWindowMaxHeightMm: 15
   connectionPartition: "sorted_connection_names_first_half"
