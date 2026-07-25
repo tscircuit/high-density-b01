@@ -203,6 +203,7 @@
         {
           "type": "route",
           "connectionName": "source_net_11_mst1",
+          "rootConnectionName": "source_net_11",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -388,6 +389,7 @@
         {
           "type": "route",
           "connectionName": "source_net_16_mst1",
+          "rootConnectionName": "source_net_16",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -463,6 +465,7 @@
         {
           "type": "route",
           "connectionName": "source_net_16_mst1",
+          "rootConnectionName": "source_net_16",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -508,6 +511,7 @@
         {
           "type": "route",
           "connectionName": "source_net_16_mst1",
+          "rootConnectionName": "source_net_16",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -578,6 +582,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst1",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -1007,6 +1012,7 @@
         {
           "type": "route",
           "connectionName": "source_net_10_mst1",
+          "rootConnectionName": "source_net_10",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -1310,6 +1316,7 @@
         {
           "type": "route",
           "connectionName": "source_net_18_mst0",
+          "rootConnectionName": "source_net_18",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -1440,6 +1447,7 @@
         {
           "type": "route",
           "connectionName": "source_net_10_mst0",
+          "rootConnectionName": "source_net_10",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -1734,6 +1742,7 @@
         {
           "type": "route",
           "connectionName": "source_net_18_mst2",
+          "rootConnectionName": "source_net_18",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -1884,6 +1893,7 @@
         {
           "type": "route",
           "connectionName": "source_net_13_mst2",
+          "rootConnectionName": "source_net_13",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -2014,6 +2024,7 @@
         {
           "type": "route",
           "connectionName": "source_net_2",
+          "rootConnectionName": "source_net_2",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -2300,6 +2311,7 @@
         {
           "type": "route",
           "connectionName": "source_net_17_mst0",
+          "rootConnectionName": "source_net_17",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -2513,6 +2525,7 @@
         {
           "type": "route",
           "connectionName": "source_net_3_mst0",
+          "rootConnectionName": "source_net_3",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -2833,6 +2846,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst2",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -3003,6 +3017,7 @@
         {
           "type": "route",
           "connectionName": "source_net_14_mst1",
+          "rootConnectionName": "source_net_14",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -3278,6 +3293,7 @@
         {
           "type": "route",
           "connectionName": "source_net_12_mst2",
+          "rootConnectionName": "source_net_12",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -3343,6 +3359,7 @@
         {
           "type": "route",
           "connectionName": "source_net_12_mst0",
+          "rootConnectionName": "source_net_12",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -3576,6 +3593,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -3791,6 +3809,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0_mst0",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -4185,6 +4204,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0_mst1",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -4360,6 +4380,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0_mst0",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -4400,6 +4421,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst1",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -4611,6 +4633,7 @@
         {
           "type": "route",
           "connectionName": "source_net_15_mst2",
+          "rootConnectionName": "source_net_15",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -4711,6 +4734,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -4983,6 +5007,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst2",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -5251,6 +5276,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0_mst1",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -5441,6 +5467,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0_mst2",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -5756,6 +5783,7 @@
         {
           "type": "route",
           "connectionName": "source_net_3_mst2",
+          "rootConnectionName": "source_net_3",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -5931,6 +5959,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst1",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -6298,6 +6327,7 @@
         {
           "type": "route",
           "connectionName": "source_net_12",
+          "rootConnectionName": "source_net_12",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -6438,6 +6468,7 @@
         {
           "type": "route",
           "connectionName": "source_net_14_mst0",
+          "rootConnectionName": "source_net_14",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -6722,6 +6753,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst2",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -6892,6 +6924,7 @@
         {
           "type": "route",
           "connectionName": "source_net_13_mst1",
+          "rootConnectionName": "source_net_13",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -7106,6 +7139,7 @@
         {
           "type": "route",
           "connectionName": "source_net_14_mst1",
+          "rootConnectionName": "source_net_14",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -7515,6 +7549,7 @@
         {
           "type": "route",
           "connectionName": "source_net_10_mst2",
+          "rootConnectionName": "source_net_10",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -7810,6 +7845,7 @@
         {
           "type": "route",
           "connectionName": "source_net_13_mst2",
+          "rootConnectionName": "source_net_13",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -7930,6 +7966,7 @@
         {
           "type": "route",
           "connectionName": "source_net_13_mst2",
+          "rootConnectionName": "source_net_13",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -8105,6 +8142,7 @@
         {
           "type": "route",
           "connectionName": "source_net_13_mst2",
+          "rootConnectionName": "source_net_13",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -8339,6 +8377,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0_mst0",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -8524,6 +8563,7 @@
         {
           "type": "route",
           "connectionName": "source_net_16_mst2",
+          "rootConnectionName": "source_net_16",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -8669,6 +8709,7 @@
         {
           "type": "route",
           "connectionName": "source_net_13_mst0",
+          "rootConnectionName": "source_net_13",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -9008,6 +9049,7 @@
         {
           "type": "route",
           "connectionName": "source_net_17_mst1",
+          "rootConnectionName": "source_net_17",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -9263,6 +9305,7 @@
         {
           "type": "route",
           "connectionName": "source_net_10_mst1",
+          "rootConnectionName": "source_net_10",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -9428,6 +9471,7 @@
         {
           "type": "route",
           "connectionName": "source_net_21_mst0",
+          "rootConnectionName": "source_net_21",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -9752,6 +9796,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst1",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -10111,6 +10156,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0_mst0",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -10451,6 +10497,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0_mst1",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -10829,6 +10876,7 @@
         {
           "type": "route",
           "connectionName": "source_net_14_mst1",
+          "rootConnectionName": "source_net_14",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -11044,6 +11092,7 @@
         {
           "type": "route",
           "connectionName": "source_net_10_mst0",
+          "rootConnectionName": "source_net_10",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -11417,6 +11466,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -11577,6 +11627,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -12029,6 +12080,7 @@
         {
           "type": "route",
           "connectionName": "source_net_16_mst0",
+          "rootConnectionName": "source_net_16",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -12184,6 +12236,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst1",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -12349,6 +12402,7 @@
         {
           "type": "route",
           "connectionName": "source_net_17_mst0",
+          "rootConnectionName": "source_net_17",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -12649,6 +12703,7 @@
         {
           "type": "route",
           "connectionName": "source_net_12",
+          "rootConnectionName": "source_net_12",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -13049,6 +13104,7 @@
         {
           "type": "route",
           "connectionName": "source_net_10_mst0",
+          "rootConnectionName": "source_net_10",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -13636,6 +13692,7 @@
         {
           "type": "route",
           "connectionName": "source_net_2_mst2",
+          "rootConnectionName": "source_net_2",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -14100,6 +14157,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst2",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -14315,6 +14373,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0_mst1",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -14718,6 +14777,7 @@
         {
           "type": "route",
           "connectionName": "source_net_10_mst1",
+          "rootConnectionName": "source_net_10",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -14883,6 +14943,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0_mst0",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -15138,6 +15199,7 @@
         {
           "type": "route",
           "connectionName": "source_net_12_mst1",
+          "rootConnectionName": "source_net_12",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -15303,6 +15365,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst2",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -15622,6 +15685,7 @@
         {
           "type": "route",
           "connectionName": "source_net_2_mst0",
+          "rootConnectionName": "source_net_2",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -15847,6 +15911,7 @@
         {
           "type": "route",
           "connectionName": "source_net_2_mst2",
+          "rootConnectionName": "source_net_2",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -16067,6 +16132,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0_mst1",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -16428,6 +16494,7 @@
         {
           "type": "route",
           "connectionName": "source_net_2",
+          "rootConnectionName": "source_net_2",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -16868,6 +16935,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0_mst2",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -17052,6 +17120,7 @@
         {
           "type": "route",
           "connectionName": "source_net_5_mst1",
+          "rootConnectionName": "source_net_5",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -17212,6 +17281,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst1",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -17511,6 +17581,7 @@
         {
           "type": "route",
           "connectionName": "source_net_11_mst1",
+          "rootConnectionName": "source_net_11",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -17566,6 +17637,7 @@
         {
           "type": "route",
           "connectionName": "source_net_11_mst1",
+          "rootConnectionName": "source_net_11",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -17786,6 +17858,7 @@
         {
           "type": "route",
           "connectionName": "source_net_11_mst1",
+          "rootConnectionName": "source_net_11",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -17846,6 +17919,7 @@
         {
           "type": "route",
           "connectionName": "source_net_12_mst1",
+          "rootConnectionName": "source_net_12",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -18145,6 +18219,7 @@
         {
           "type": "route",
           "connectionName": "source_net_11_mst2",
+          "rootConnectionName": "source_net_11",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -18394,6 +18469,7 @@
         {
           "type": "route",
           "connectionName": "source_net_10_mst0",
+          "rootConnectionName": "source_net_10",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -18554,6 +18630,7 @@
         {
           "type": "route",
           "connectionName": "source_net_20_mst2",
+          "rootConnectionName": "source_net_20",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -18728,6 +18805,7 @@
         {
           "type": "route",
           "connectionName": "source_net_14_mst0",
+          "rootConnectionName": "source_net_14",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -18853,6 +18931,7 @@
         {
           "type": "route",
           "connectionName": "source_net_16_mst1",
+          "rootConnectionName": "source_net_16",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -19028,6 +19107,7 @@
         {
           "type": "route",
           "connectionName": "source_net_13_mst0",
+          "rootConnectionName": "source_net_13",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -19406,6 +19486,7 @@
         {
           "type": "route",
           "connectionName": "source_net_10_mst1",
+          "rootConnectionName": "source_net_10",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -19586,6 +19667,7 @@
         {
           "type": "route",
           "connectionName": "source_net_5_mst1",
+          "rootConnectionName": "source_net_5",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -19851,6 +19933,7 @@
         {
           "type": "route",
           "connectionName": "source_net_13_mst1",
+          "rootConnectionName": "source_net_13",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -20041,6 +20124,7 @@
         {
           "type": "route",
           "connectionName": "source_net_14_mst1",
+          "rootConnectionName": "source_net_14",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -20332,6 +20416,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0_mst2",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -20522,6 +20607,7 @@
         {
           "type": "route",
           "connectionName": "source_net_15_mst2",
+          "rootConnectionName": "source_net_15",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -20692,6 +20778,7 @@
         {
           "type": "route",
           "connectionName": "source_net_15_mst0",
+          "rootConnectionName": "source_net_15",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -20867,6 +20954,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst2",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -21112,6 +21200,7 @@
         {
           "type": "route",
           "connectionName": "source_net_13",
+          "rootConnectionName": "source_net_13",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -21162,6 +21251,7 @@
         {
           "type": "route",
           "connectionName": "source_net_16_mst2",
+          "rootConnectionName": "source_net_16",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -21554,6 +21644,7 @@
         {
           "type": "route",
           "connectionName": "source_net_18",
+          "rootConnectionName": "source_net_18",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -22103,6 +22194,7 @@
         {
           "type": "route",
           "connectionName": "source_net_16_mst1",
+          "rootConnectionName": "source_net_16",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -22262,6 +22354,7 @@
         {
           "type": "route",
           "connectionName": "source_net_13_mst1",
+          "rootConnectionName": "source_net_13",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -22462,6 +22555,7 @@
         {
           "type": "route",
           "connectionName": "source_net_15_mst0",
+          "rootConnectionName": "source_net_15",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -22715,6 +22809,7 @@
         {
           "type": "route",
           "connectionName": "source_net_19_mst1",
+          "rootConnectionName": "source_net_19",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -23037,6 +23132,7 @@
         {
           "type": "route",
           "connectionName": "source_net_11_mst0",
+          "rootConnectionName": "source_net_11",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -23207,6 +23303,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0_mst0",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -23794,6 +23891,7 @@
         {
           "type": "route",
           "connectionName": "source_net_20_mst0",
+          "rootConnectionName": "source_net_20",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -23964,6 +24062,7 @@
         {
           "type": "route",
           "connectionName": "source_net_12_mst1",
+          "rootConnectionName": "source_net_12",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -24119,6 +24218,7 @@
         {
           "type": "route",
           "connectionName": "source_net_26_mst1",
+          "rootConnectionName": "source_net_26",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -24572,6 +24672,7 @@
         {
           "type": "route",
           "connectionName": "source_net_23_mst1",
+          "rootConnectionName": "source_net_23",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -24802,6 +24903,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0_mst0",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -24947,6 +25049,7 @@
         {
           "type": "route",
           "connectionName": "source_net_13_mst1",
+          "rootConnectionName": "source_net_13",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -25224,6 +25327,7 @@
         {
           "type": "route",
           "connectionName": "source_net_21_mst0",
+          "rootConnectionName": "source_net_21",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -25294,6 +25398,7 @@
         {
           "type": "route",
           "connectionName": "source_net_16_mst1",
+          "rootConnectionName": "source_net_16",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -25384,6 +25489,7 @@
         {
           "type": "route",
           "connectionName": "source_net_13_mst1",
+          "rootConnectionName": "source_net_13",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -25557,6 +25663,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0_mst1",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -25692,6 +25799,7 @@
         {
           "type": "route",
           "connectionName": "source_net_17",
+          "rootConnectionName": "source_net_17",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -25956,6 +26064,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0_mst2",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -26206,6 +26315,7 @@
         {
           "type": "route",
           "connectionName": "source_net_19_mst0",
+          "rootConnectionName": "source_net_19",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -26371,6 +26481,7 @@
         {
           "type": "route",
           "connectionName": "source_net_13_mst2",
+          "rootConnectionName": "source_net_13",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -26774,6 +26885,7 @@
         {
           "type": "route",
           "connectionName": "source_net_15_mst1",
+          "rootConnectionName": "source_net_15",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -27024,6 +27136,7 @@
         {
           "type": "route",
           "connectionName": "source_net_11_mst2",
+          "rootConnectionName": "source_net_11",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -27187,6 +27300,7 @@
         {
           "type": "route",
           "connectionName": "source_net_18_mst1",
+          "rootConnectionName": "source_net_18",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -27252,6 +27366,7 @@
         {
           "type": "route",
           "connectionName": "source_net_19",
+          "rootConnectionName": "source_net_19",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -27460,6 +27575,7 @@
         {
           "type": "route",
           "connectionName": "source_net_16",
+          "rootConnectionName": "source_net_16",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -27685,6 +27801,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -27885,6 +28002,7 @@
         {
           "type": "route",
           "connectionName": "source_net_11_mst2",
+          "rootConnectionName": "source_net_11",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -28355,6 +28473,7 @@
         {
           "type": "route",
           "connectionName": "source_net_12_mst1",
+          "rootConnectionName": "source_net_12",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -28555,6 +28674,7 @@
         {
           "type": "route",
           "connectionName": "source_net_2_mst0",
+          "rootConnectionName": "source_net_2",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -28939,6 +29059,7 @@
         {
           "type": "route",
           "connectionName": "source_net_13_mst1",
+          "rootConnectionName": "source_net_13",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -29114,6 +29235,7 @@
         {
           "type": "route",
           "connectionName": "source_net_16_mst0",
+          "rootConnectionName": "source_net_16",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -29289,6 +29411,7 @@
         {
           "type": "route",
           "connectionName": "source_net_11",
+          "rootConnectionName": "source_net_11",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -29701,6 +29824,7 @@
         {
           "type": "route",
           "connectionName": "source_net_16_mst1",
+          "rootConnectionName": "source_net_16",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -30021,6 +30145,7 @@
         {
           "type": "route",
           "connectionName": "source_net_14_mst2",
+          "rootConnectionName": "source_net_14",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -30579,6 +30704,7 @@
         {
           "type": "route",
           "connectionName": "source_net_10_mst0",
+          "rootConnectionName": "source_net_10",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -30979,6 +31105,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst2",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -31452,6 +31579,7 @@
         {
           "type": "route",
           "connectionName": "source_net_15_mst1",
+          "rootConnectionName": "source_net_15",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -31862,6 +31990,7 @@
         {
           "type": "route",
           "connectionName": "source_net_12_mst1",
+          "rootConnectionName": "source_net_12",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -32311,6 +32440,7 @@
         {
           "type": "route",
           "connectionName": "source_net_21_mst1",
+          "rootConnectionName": "source_net_21",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -32630,6 +32760,7 @@
         {
           "type": "route",
           "connectionName": "source_net_16",
+          "rootConnectionName": "source_net_16",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -32873,6 +33004,7 @@
         {
           "type": "route",
           "connectionName": "source_net_18",
+          "rootConnectionName": "source_net_18",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -33213,6 +33345,7 @@
         {
           "type": "route",
           "connectionName": "source_net_12_mst2",
+          "rootConnectionName": "source_net_12",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -33497,6 +33630,7 @@
         {
           "type": "route",
           "connectionName": "source_net_19_mst2",
+          "rootConnectionName": "source_net_19",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -33657,6 +33791,7 @@
         {
           "type": "route",
           "connectionName": "source_net_22_mst1",
+          "rootConnectionName": "source_net_22",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -34319,6 +34454,7 @@
         {
           "type": "route",
           "connectionName": "source_net_10_mst2",
+          "rootConnectionName": "source_net_10",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -34634,6 +34770,7 @@
         {
           "type": "route",
           "connectionName": "source_net_11",
+          "rootConnectionName": "source_net_11",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -35047,6 +35184,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0_mst0",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -35381,6 +35519,7 @@
         {
           "type": "route",
           "connectionName": "source_net_16_mst0",
+          "rootConnectionName": "source_net_16",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -35711,6 +35850,7 @@
         {
           "type": "route",
           "connectionName": "source_net_15",
+          "rootConnectionName": "source_net_15",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -36019,6 +36159,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst1",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -36214,6 +36355,7 @@
         {
           "type": "route",
           "connectionName": "source_net_12_mst1",
+          "rootConnectionName": "source_net_12",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -36580,6 +36722,7 @@
         {
           "type": "route",
           "connectionName": "source_net_3_mst1",
+          "rootConnectionName": "source_net_3",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -36818,6 +36961,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0_mst1",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -37300,6 +37444,7 @@
         {
           "type": "route",
           "connectionName": "source_net_11_mst1",
+          "rootConnectionName": "source_net_11",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -37490,6 +37635,7 @@
         {
           "type": "route",
           "connectionName": "source_net_12_mst1",
+          "rootConnectionName": "source_net_12",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -37640,6 +37786,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0_mst1",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -37730,6 +37877,7 @@
         {
           "type": "route",
           "connectionName": "source_net_14",
+          "rootConnectionName": "source_net_14",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -37860,6 +38008,7 @@
         {
           "type": "route",
           "connectionName": "source_net_10_mst0",
+          "rootConnectionName": "source_net_10",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -38128,6 +38277,7 @@
         {
           "type": "route",
           "connectionName": "source_net_2_mst1",
+          "rootConnectionName": "source_net_2",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -38263,6 +38413,7 @@
         {
           "type": "route",
           "connectionName": "source_net_4_mst2",
+          "rootConnectionName": "source_net_4",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -38555,6 +38706,7 @@
         {
           "type": "route",
           "connectionName": "source_net_10_mst2",
+          "rootConnectionName": "source_net_10",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -38800,6 +38952,7 @@
         {
           "type": "route",
           "connectionName": "source_net_14_mst0",
+          "rootConnectionName": "source_net_14",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -39035,6 +39188,7 @@
         {
           "type": "route",
           "connectionName": "source_net_16_mst1",
+          "rootConnectionName": "source_net_16",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -39238,6 +39392,7 @@
         {
           "type": "route",
           "connectionName": "source_net_11_mst1",
+          "rootConnectionName": "source_net_11",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -39343,6 +39498,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0_mst0",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -39618,6 +39774,7 @@
         {
           "type": "route",
           "connectionName": "source_net_18_mst1",
+          "rootConnectionName": "source_net_18",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -39817,6 +39974,7 @@
         {
           "type": "route",
           "connectionName": "source_net_12_mst1",
+          "rootConnectionName": "source_net_12",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -40144,6 +40302,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst2",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -40449,6 +40608,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0_mst1",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -40559,6 +40719,7 @@
         {
           "type": "route",
           "connectionName": "source_net_2_mst2",
+          "rootConnectionName": "source_net_2",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -41272,6 +41433,7 @@
         {
           "type": "route",
           "connectionName": "source_net_22",
+          "rootConnectionName": "source_net_22",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -41602,6 +41764,7 @@
         {
           "type": "route",
           "connectionName": "source_net_27",
+          "rootConnectionName": "source_net_27",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -41999,6 +42162,7 @@
         {
           "type": "route",
           "connectionName": "source_net_15_mst2",
+          "rootConnectionName": "source_net_15",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -42234,6 +42398,7 @@
         {
           "type": "route",
           "connectionName": "source_net_11_mst2",
+          "rootConnectionName": "source_net_11",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -42424,6 +42589,7 @@
         {
           "type": "route",
           "connectionName": "source_net_13_mst2",
+          "rootConnectionName": "source_net_13",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -42814,6 +42980,7 @@
         {
           "type": "route",
           "connectionName": "source_net_11_mst1",
+          "rootConnectionName": "source_net_11",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -43274,6 +43441,7 @@
         {
           "type": "route",
           "connectionName": "source_net_12_mst0",
+          "rootConnectionName": "source_net_12",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -43504,6 +43672,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst3",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -43814,6 +43983,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -44099,6 +44269,7 @@
         {
           "type": "route",
           "connectionName": "source_net_2_mst2",
+          "rootConnectionName": "source_net_2",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -44486,6 +44657,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst0",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -44741,6 +44913,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst1",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -45086,6 +45259,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -45488,6 +45662,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst2",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -45648,6 +45823,7 @@
         {
           "type": "route",
           "connectionName": "source_net_13_mst2",
+          "rootConnectionName": "source_net_13",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -45778,6 +45954,7 @@
         {
           "type": "route",
           "connectionName": "source_net_2",
+          "rootConnectionName": "source_net_2",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -46178,6 +46355,7 @@
         {
           "type": "route",
           "connectionName": "source_net_15_mst1",
+          "rootConnectionName": "source_net_15",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -46418,6 +46596,7 @@
         {
           "type": "route",
           "connectionName": "source_net_17_mst0",
+          "rootConnectionName": "source_net_17",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -46882,6 +47061,7 @@
         {
           "type": "route",
           "connectionName": "source_net_14_mst2",
+          "rootConnectionName": "source_net_14",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -47282,6 +47462,7 @@
         {
           "type": "route",
           "connectionName": "source_net_18_mst0",
+          "rootConnectionName": "source_net_18",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -47437,6 +47618,7 @@
         {
           "type": "route",
           "connectionName": "source_net_18_mst1",
+          "rootConnectionName": "source_net_18",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -47710,6 +47892,7 @@
         {
           "type": "route",
           "connectionName": "source_net_2_mst1",
+          "rootConnectionName": "source_net_2",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -48065,6 +48248,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst1",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -48451,6 +48635,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst1",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -48601,6 +48786,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst2",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -49049,6 +49235,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0_mst0",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -49189,6 +49376,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0_mst1",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -49581,6 +49769,7 @@
         {
           "type": "route",
           "connectionName": "source_net_15_mst1",
+          "rootConnectionName": "source_net_15",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -49701,6 +49890,7 @@
         {
           "type": "route",
           "connectionName": "source_net_13_mst1",
+          "rootConnectionName": "source_net_13",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -49871,6 +50061,7 @@
         {
           "type": "route",
           "connectionName": "source_net_16_mst0",
+          "rootConnectionName": "source_net_16",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -50031,6 +50222,7 @@
         {
           "type": "route",
           "connectionName": "source_net_15_mst0",
+          "rootConnectionName": "source_net_15",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -50211,6 +50403,7 @@
         {
           "type": "route",
           "connectionName": "source_net_19_mst1",
+          "rootConnectionName": "source_net_19",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -50414,6 +50607,7 @@
         {
           "type": "route",
           "connectionName": "source_net_18_mst1",
+          "rootConnectionName": "source_net_18",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -50564,6 +50758,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -50857,6 +51052,7 @@
         {
           "type": "route",
           "connectionName": "source_net_15",
+          "rootConnectionName": "source_net_15",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -51131,6 +51327,7 @@
         {
           "type": "route",
           "connectionName": "source_net_10_mst2",
+          "rootConnectionName": "source_net_10",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -51391,6 +51588,7 @@
         {
           "type": "route",
           "connectionName": "source_net_19",
+          "rootConnectionName": "source_net_19",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -51541,6 +51739,7 @@
         {
           "type": "route",
           "connectionName": "source_net_16_mst1",
+          "rootConnectionName": "source_net_16",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -52114,6 +52313,7 @@
         {
           "type": "route",
           "connectionName": "source_net_5_mst1",
+          "rootConnectionName": "source_net_5",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -52373,6 +52573,7 @@
         {
           "type": "route",
           "connectionName": "source_net_2_mst1",
+          "rootConnectionName": "source_net_2",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -52413,6 +52614,7 @@
         {
           "type": "route",
           "connectionName": "source_net_2_mst1",
+          "rootConnectionName": "source_net_2",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -52493,6 +52695,7 @@
         {
           "type": "route",
           "connectionName": "source_net_2_mst1",
+          "rootConnectionName": "source_net_2",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -52808,6 +53011,7 @@
         {
           "type": "route",
           "connectionName": "source_net_17_mst2",
+          "rootConnectionName": "source_net_17",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -53328,6 +53532,7 @@
         {
           "type": "route",
           "connectionName": "source_net_16_mst1",
+          "rootConnectionName": "source_net_16",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -53770,6 +53975,7 @@
         {
           "type": "route",
           "connectionName": "source_net_14",
+          "rootConnectionName": "source_net_14",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -53845,6 +54051,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0_mst1",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -54088,6 +54295,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst1",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -54473,6 +54681,7 @@
         {
           "type": "route",
           "connectionName": "source_net_14_mst0",
+          "rootConnectionName": "source_net_14",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -54678,6 +54887,7 @@
         {
           "type": "route",
           "connectionName": "source_net_2_mst1",
+          "rootConnectionName": "source_net_2",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -54923,6 +55133,7 @@
         {
           "type": "route",
           "connectionName": "source_net_12_mst1",
+          "rootConnectionName": "source_net_12",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -55033,6 +55244,7 @@
         {
           "type": "route",
           "connectionName": "source_net_3",
+          "rootConnectionName": "source_net_3",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -55353,6 +55565,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst0",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -55643,6 +55856,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -55871,6 +56085,7 @@
         {
           "type": "route",
           "connectionName": "source_net_10_mst0",
+          "rootConnectionName": "source_net_10",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -56031,6 +56246,7 @@
         {
           "type": "route",
           "connectionName": "source_net_23_mst1",
+          "rootConnectionName": "source_net_23",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -56196,6 +56412,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst2",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -56351,6 +56568,7 @@
         {
           "type": "route",
           "connectionName": "source_net_4_mst1",
+          "rootConnectionName": "source_net_4",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -56656,6 +56874,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0_mst0",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -56821,6 +57040,7 @@
         {
           "type": "route",
           "connectionName": "source_net_10_mst1",
+          "rootConnectionName": "source_net_10",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -57161,6 +57381,7 @@
         {
           "type": "route",
           "connectionName": "source_net_10_mst0",
+          "rootConnectionName": "source_net_10",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -57480,6 +57701,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst0",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -57948,6 +58170,7 @@
         {
           "type": "route",
           "connectionName": "source_net_13_mst1",
+          "rootConnectionName": "source_net_13",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -58103,6 +58326,7 @@
         {
           "type": "route",
           "connectionName": "source_net_10_mst0",
+          "rootConnectionName": "source_net_10",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -58361,6 +58585,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst2",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -58581,6 +58806,7 @@
         {
           "type": "route",
           "connectionName": "source_net_12",
+          "rootConnectionName": "source_net_12",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -58879,6 +59105,7 @@
         {
           "type": "route",
           "connectionName": "source_net_6_mst0",
+          "rootConnectionName": "source_net_6",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -59179,6 +59406,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0_mst2",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -59466,6 +59694,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst2",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -59491,6 +59720,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0_mst0",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -59609,6 +59839,7 @@
         {
           "type": "route",
           "connectionName": "source_net_16_mst2",
+          "rootConnectionName": "source_net_16",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -59834,6 +60065,7 @@
         {
           "type": "route",
           "connectionName": "source_net_19",
+          "rootConnectionName": "source_net_19",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -60158,6 +60390,7 @@
         {
           "type": "route",
           "connectionName": "source_net_13_mst1",
+          "rootConnectionName": "source_net_13",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -60313,6 +60546,7 @@
         {
           "type": "route",
           "connectionName": "source_net_15_mst1",
+          "rootConnectionName": "source_net_15",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -60473,6 +60707,7 @@
         {
           "type": "route",
           "connectionName": "source_net_16_mst2",
+          "rootConnectionName": "source_net_16",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -60746,6 +60981,7 @@
         {
           "type": "route",
           "connectionName": "source_net_2",
+          "rootConnectionName": "source_net_2",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -60976,6 +61212,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -61351,6 +61588,7 @@
         {
           "type": "route",
           "connectionName": "source_net_11",
+          "rootConnectionName": "source_net_11",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -61629,6 +61867,7 @@
         {
           "type": "route",
           "connectionName": "source_net_3_mst1",
+          "rootConnectionName": "source_net_3",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -62003,6 +62242,7 @@
         {
           "type": "route",
           "connectionName": "source_net_2",
+          "rootConnectionName": "source_net_2",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -62183,6 +62423,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0_mst1",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -62557,6 +62798,7 @@
         {
           "type": "route",
           "connectionName": "source_net_16_mst1",
+          "rootConnectionName": "source_net_16",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -62742,6 +62984,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0_mst1",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -62927,6 +63170,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst2",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -63322,6 +63566,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0_mst1",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -63427,6 +63672,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0_mst1",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -63502,6 +63748,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0_mst1",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -63712,6 +63959,7 @@
         {
           "type": "route",
           "connectionName": "source_net_16_mst0",
+          "rootConnectionName": "source_net_16",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -63946,6 +64194,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst1",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -64290,6 +64539,7 @@
         {
           "type": "route",
           "connectionName": "source_net_14_mst1",
+          "rootConnectionName": "source_net_14",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -64844,6 +65094,7 @@
         {
           "type": "route",
           "connectionName": "source_net_18",
+          "rootConnectionName": "source_net_18",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -65064,6 +65315,7 @@
         {
           "type": "route",
           "connectionName": "source_net_11_mst2",
+          "rootConnectionName": "source_net_11",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -65439,6 +65691,7 @@
         {
           "type": "route",
           "connectionName": "source_net_16_mst1",
+          "rootConnectionName": "source_net_16",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -65614,6 +65867,7 @@
         {
           "type": "route",
           "connectionName": "source_net_15_mst2",
+          "rootConnectionName": "source_net_15",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -65719,6 +65973,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -65904,6 +66159,7 @@
         {
           "type": "route",
           "connectionName": "source_net_10_mst1",
+          "rootConnectionName": "source_net_10",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -66124,6 +66380,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst1",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -66416,6 +66673,7 @@
         {
           "type": "route",
           "connectionName": "source_net_14_mst1",
+          "rootConnectionName": "source_net_14",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -66596,6 +66854,7 @@
         {
           "type": "route",
           "connectionName": "source_net_15_mst0",
+          "rootConnectionName": "source_net_15",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -66889,6 +67148,7 @@
         {
           "type": "route",
           "connectionName": "source_net_20_mst1",
+          "rootConnectionName": "source_net_20",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -67129,6 +67389,7 @@
         {
           "type": "route",
           "connectionName": "source_net_16_mst1",
+          "rootConnectionName": "source_net_16",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -67537,6 +67798,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0_mst2",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -67762,6 +68024,7 @@
         {
           "type": "route",
           "connectionName": "source_net_2_mst1",
+          "rootConnectionName": "source_net_2",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -68051,6 +68314,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst1",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -68365,6 +68629,7 @@
         {
           "type": "route",
           "connectionName": "source_net_3_mst0",
+          "rootConnectionName": "source_net_3",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -68707,6 +68972,7 @@
         {
           "type": "route",
           "connectionName": "source_net_14_mst0",
+          "rootConnectionName": "source_net_14",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -68817,6 +69083,7 @@
         {
           "type": "route",
           "connectionName": "source_net_17",
+          "rootConnectionName": "source_net_17",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -69252,6 +69519,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0_mst2",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -69551,6 +69819,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst2",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -69771,6 +70040,7 @@
         {
           "type": "route",
           "connectionName": "source_net_11_mst1",
+          "rootConnectionName": "source_net_11",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -70016,6 +70286,7 @@
         {
           "type": "route",
           "connectionName": "source_net_11_mst2",
+          "rootConnectionName": "source_net_11",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -70353,6 +70624,7 @@
         {
           "type": "route",
           "connectionName": "source_net_18_mst2",
+          "rootConnectionName": "source_net_18",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -70438,6 +70710,7 @@
         {
           "type": "route",
           "connectionName": "source_net_11_mst0",
+          "rootConnectionName": "source_net_11",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -70701,6 +70974,7 @@
         {
           "type": "route",
           "connectionName": "source_net_16",
+          "rootConnectionName": "source_net_16",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -70906,6 +71180,7 @@
         {
           "type": "route",
           "connectionName": "source_net_18",
+          "rootConnectionName": "source_net_18",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -71096,6 +71371,7 @@
         {
           "type": "route",
           "connectionName": "source_net_19_mst1",
+          "rootConnectionName": "source_net_19",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -71281,6 +71557,7 @@
         {
           "type": "route",
           "connectionName": "source_net_13",
+          "rootConnectionName": "source_net_13",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -71567,6 +71844,7 @@
         {
           "type": "route",
           "connectionName": "source_net_18",
+          "rootConnectionName": "source_net_18",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -71782,6 +72060,7 @@
         {
           "type": "route",
           "connectionName": "source_net_2_mst1",
+          "rootConnectionName": "source_net_2",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -71987,6 +72266,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst1",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -72092,6 +72372,7 @@
         {
           "type": "route",
           "connectionName": "source_net_16_mst1",
+          "rootConnectionName": "source_net_16",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -72482,6 +72763,7 @@
         {
           "type": "route",
           "connectionName": "source_net_14",
+          "rootConnectionName": "source_net_14",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -72822,6 +73104,7 @@
         {
           "type": "route",
           "connectionName": "source_net_10_mst1",
+          "rootConnectionName": "source_net_10",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -73150,6 +73433,7 @@
         {
           "type": "route",
           "connectionName": "source_net_13_mst1",
+          "rootConnectionName": "source_net_13",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -73275,6 +73559,7 @@
         {
           "type": "route",
           "connectionName": "source_net_13_mst0",
+          "rootConnectionName": "source_net_13",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -73482,6 +73767,7 @@
         {
           "type": "route",
           "connectionName": "source_net_18_mst2",
+          "rootConnectionName": "source_net_18",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -73527,6 +73813,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0_mst2",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -73733,6 +74020,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst1",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -73968,6 +74256,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst1",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -74138,6 +74427,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst1",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -74328,6 +74618,7 @@
         {
           "type": "route",
           "connectionName": "source_net_0_mst2",
+          "rootConnectionName": "source_net_0",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -74568,6 +74859,7 @@
         {
           "type": "route",
           "connectionName": "source_net_18_mst0",
+          "rootConnectionName": "source_net_18",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -74753,6 +75045,7 @@
         {
           "type": "route",
           "connectionName": "source_net_12_mst1",
+          "rootConnectionName": "source_net_12",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -75058,6 +75351,7 @@
         {
           "type": "route",
           "connectionName": "source_net_19",
+          "rootConnectionName": "source_net_19",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -75203,6 +75497,7 @@
         {
           "type": "route",
           "connectionName": "source_net_12",
+          "rootConnectionName": "source_net_12",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -75348,6 +75643,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst2",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -75837,6 +76133,7 @@
         {
           "type": "route",
           "connectionName": "source_net_16_mst1",
+          "rootConnectionName": "source_net_16",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -76167,6 +76464,7 @@
         {
           "type": "route",
           "connectionName": "source_net_12_mst1",
+          "rootConnectionName": "source_net_12",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -76227,6 +76525,7 @@
         {
           "type": "route",
           "connectionName": "source_net_19_mst1",
+          "rootConnectionName": "source_net_19",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -76436,6 +76735,7 @@
         {
           "type": "route",
           "connectionName": "source_net_13_mst1",
+          "rootConnectionName": "source_net_13",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -76541,6 +76841,7 @@
         {
           "type": "route",
           "connectionName": "source_net_15_mst1",
+          "rootConnectionName": "source_net_15",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -76781,6 +77082,7 @@
         {
           "type": "route",
           "connectionName": "source_net_2_mst2",
+          "rootConnectionName": "source_net_2",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -77161,6 +77463,7 @@
         {
           "type": "route",
           "connectionName": "source_net_1_mst2",
+          "rootConnectionName": "source_net_1",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -77640,6 +77943,7 @@
         {
           "type": "route",
           "connectionName": "source_net_11",
+          "rootConnectionName": "source_net_11",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -77975,6 +78279,7 @@
         {
           "type": "route",
           "connectionName": "source_net_18",
+          "rootConnectionName": "source_net_18",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
@@ -78070,6 +78375,7 @@
         {
           "type": "route",
           "connectionName": "source_net_13_mst1",
+          "rootConnectionName": "source_net_13",
           "traceThickness": 0.1,
           "viaDiameter": 0.3,
           "route": [
