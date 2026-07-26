@@ -2707,12 +2707,15 @@ export class HighDensitySolverB01 extends BaseSolver {
       points: Array<{ x: number; y: number }>
       strokeColor?: string
       strokeWidth?: number
+      strokeDash?: number[]
+      label?: string
     }> = []
     const circles: Array<{
       center: { x: number; y: number }
       radius: number
       fill?: string
       stroke?: string
+      label?: string
     }> = []
     const rects: Array<{
       center: { x: number; y: number }
@@ -2731,6 +2734,74 @@ export class HighDensitySolverB01 extends BaseSolver {
       height: this.nodeWithPortPoints.height,
       stroke: "gray",
     })
+
+    const pushRouteLines = ({
+      route,
+      connectionName,
+      strokeWidth,
+      strokeDash,
+      labelPrefix,
+    }: {
+      route: Array<{ x: number; y: number; z: number }>
+      connectionName: string
+      strokeWidth: number
+      strokeDash?: number[]
+      labelPrefix: string
+    }) => {
+      if (route.length < 2) return
+
+      let segmentStart = 0
+      for (let index = 1; index < route.length; index += 1) {
+        const previousPoint = route[index - 1]!
+        const currentPoint = route[index]!
+        if (currentPoint.z === previousPoint.z) continue
+
+        if (index - segmentStart >= 2) {
+          lines.push({
+            points: route
+              .slice(segmentStart, index)
+              .map((point) => ({ x: point.x, y: point.y })),
+            strokeColor:
+              LAYER_COLORS[previousPoint.z] ?? "rgba(128,128,128,0.75)",
+            strokeWidth,
+            strokeDash,
+            label: `${labelPrefix} ${connectionName} z=${previousPoint.z}`,
+          })
+        }
+        segmentStart = index
+      }
+
+      if (route.length - segmentStart < 2) return
+      const lastLayer = route[segmentStart]!.z
+      lines.push({
+        points: route
+          .slice(segmentStart)
+          .map((point) => ({ x: point.x, y: point.y })),
+        strokeColor: LAYER_COLORS[lastLayer] ?? "rgba(128,128,128,0.75)",
+        strokeWidth,
+        strokeDash,
+        label: `${labelPrefix} ${connectionName} z=${lastLayer}`,
+      })
+    }
+
+    for (const obstacle of this.obstacles) {
+      pushRouteLines({
+        route: obstacle.route,
+        connectionName: obstacle.connectionName,
+        strokeWidth: obstacle.traceThickness,
+        strokeDash: [0.12, 0.08],
+        labelPrefix: "fixed obstacle",
+      })
+      for (const via of obstacle.vias) {
+        circles.push({
+          center: { x: via.x, y: via.y },
+          radius: obstacle.viaDiameter / 2,
+          fill: "rgba(128,0,128,0.25)",
+          stroke: "purple",
+          label: `fixed obstacle ${obstacle.connectionName} via`,
+        })
+      }
+    }
 
     if (this.showPenaltyMap && this.penalty2d) {
       let maxPenalty = 0
@@ -2785,41 +2856,14 @@ export class HighDensitySolverB01 extends BaseSolver {
       })
     }
 
-    const TRACE_COLORS = [
-      "rgba(255,0,0,0.75)",
-      "rgba(0,0,255,0.75)",
-      "rgba(255,165,0,0.75)",
-      "rgba(0,128,0,0.75)",
-    ]
     const transformedRoutes = this.getOutput()
     for (const route of transformedRoutes) {
-      if (route.route.length < 2) continue
-
-      let segStart = 0
-      for (let i = 1; i < route.route.length; i++) {
-        const prev = route.route[i - 1]!
-        const curr = route.route[i]!
-        if (curr.z !== prev.z) {
-          if (i - segStart >= 2) {
-            lines.push({
-              points: route.route
-                .slice(segStart, i)
-                .map((p) => ({ x: p.x, y: p.y })),
-              strokeColor: TRACE_COLORS[prev.z] ?? "rgba(128,128,128,0.75)",
-              strokeWidth: this.traceThickness,
-            })
-          }
-          segStart = i
-        }
-      }
-      if (route.route.length - segStart >= 2) {
-        const lastZ = route.route[segStart]!.z
-        lines.push({
-          points: route.route.slice(segStart).map((p) => ({ x: p.x, y: p.y })),
-          strokeColor: TRACE_COLORS[lastZ] ?? "rgba(128,128,128,0.75)",
-          strokeWidth: this.traceThickness,
-        })
-      }
+      pushRouteLines({
+        route: route.route,
+        connectionName: route.connectionName,
+        strokeWidth: this.traceThickness,
+        labelPrefix: "B01 route",
+      })
     }
 
     for (const route of transformedRoutes) {
@@ -2829,6 +2873,7 @@ export class HighDensitySolverB01 extends BaseSolver {
           radius: this.viaDiameter / 2,
           fill: "rgba(0,0,0,0.3)",
           stroke: "black",
+          label: `B01 route ${route.connectionName} via`,
         })
       }
     }

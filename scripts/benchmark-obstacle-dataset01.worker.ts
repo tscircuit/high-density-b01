@@ -68,13 +68,26 @@ function runSingleSample(
     const start = performance.now()
     solver.solve()
     const durationMs = performance.now() - start
-    const routes = solver.getOutput()
-    const violations = findRouteGeometryViolations([
-      ...sample.obstacles,
-      ...routes,
-    ])
+    const routedConnections = solver.getOutput()
+    const completeRoutes = [...sample.obstacles, ...routedConnections]
+    const violations = findRouteGeometryViolations(completeRoutes)
+    const routedConnectionNames = new Set(
+      completeRoutes.map((route) => route.connectionName),
+    )
+    const missingConnectionNames = [
+      ...sample.preRoutedConnectionNames,
+      ...sample.connectionNamesToRoute,
+    ].filter((connectionName) => !routedConnectionNames.has(connectionName))
     const connectionCount = sample.connectionNamesToRoute.length
-    const valid = solver.solved && violations.length === 0
+    const valid =
+      solver.solved &&
+      violations.length === 0 &&
+      missingConnectionNames.length === 0
+    const error =
+      solver.error ??
+      (missingConnectionNames.length > 0
+        ? `Missing routed connections: ${missingConnectionNames.join(", ")}`
+        : null)
 
     return {
       type: "result",
@@ -86,10 +99,10 @@ function runSingleSample(
       failed: solver.failed,
       iterations: solver.iterations,
       durationMs,
-      routeCount: routes.length,
+      routeCount: completeRoutes.length,
       connectionCount,
       violationCount: violations.length,
-      error: solver.error,
+      error,
       gridStats: options.collectStats
         ? normalizeGridStats(solver.gridStats)
         : undefined,

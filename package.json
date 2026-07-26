@@ -16,7 +16,7 @@
   },
   "scripts": {
     "start": "cosmos",
-    "build:site": "cosmos-export",
+    "build:site": "bun run build && cosmos-export",
     "build": "bunx tsc --noEmit",
     "test": "bun test",
     "generate:obstacle-dataset01": "bun run scripts/generate-obstacle-dataset01.ts",

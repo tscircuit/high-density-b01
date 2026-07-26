@@ -71,7 +71,7 @@ function parseGenerationOptions(argv: string[]): GenerationOptions | null {
 
 Options:
   --limit=N             Number of successful samples to write (default: 100)
-  --max-iterations=N    A03 iteration cap per preroute solve (default: 1000000)
+  --max-iterations=N    A03 iteration cap per full reference solve (default: 1000000)
   --output=PATH         Output JSON path
   --help, -h            Show this help text`)
       return null
@@ -183,16 +183,9 @@ function generateObstacleSample(
   )
   const connectionNamesToRoute = connectionNames.slice(preRoutedConnectionCount)
   const preRoutedConnectionNameSet = new Set(preRoutedConnectionNames)
-  const preRouteNodeWithPortPoints: NodeWithPortPoints = {
-    ...nodeWithPortPoints,
-    capacityMeshNodeId: `${nodeWithPortPoints.capacityMeshNodeId}-preroute`,
-    portPoints: nodeWithPortPoints.portPoints.filter((portPoint) =>
-      preRoutedConnectionNameSet.has(portPoint.connectionName),
-    ),
-  }
   const solver = new HighDensitySolverA03({
     ...defaultA03Params,
-    nodeWithPortPoints: preRouteNodeWithPortPoints,
+    nodeWithPortPoints,
     maxCellCount: 200_000,
   })
   solver.MAX_ITERATIONS = options.maxIterations
@@ -201,16 +194,47 @@ function generateObstacleSample(
   if (!solver.solved) {
     return {
       isGenerated: false,
-      reason: solver.error ?? "A03 did not solve the prerouted half",
+      reason: solver.error ?? "A03 did not solve the full reference node",
     }
   }
 
-  const routes = solver.getOutput()
-  const violations = findRouteGeometryViolations(routes)
+  const fullReferenceRoutes = solver.getOutput()
+  const violations = findRouteGeometryViolations(fullReferenceRoutes)
   if (violations.length > 0) {
     return {
       isGenerated: false,
-      reason: `A03 preroute has ${violations.length} geometry violations`,
+      reason: `A03 full reference route has ${violations.length} geometry violations`,
+    }
+  }
+  const fullReferenceConnectionNames = new Set(
+    fullReferenceRoutes.map((route) => route.connectionName),
+  )
+  const missingReferenceConnections = connectionNames.filter(
+    (connectionName) => !fullReferenceConnectionNames.has(connectionName),
+  )
+  if (missingReferenceConnections.length > 0) {
+    return {
+      isGenerated: false,
+      reason:
+        "A03 full reference route is incomplete; missing connections: " +
+        missingReferenceConnections.join(", "),
+    }
+  }
+  const routes = fullReferenceRoutes.filter((route) =>
+    preRoutedConnectionNameSet.has(route.connectionName),
+  )
+  const routedObstacleConnectionNames = new Set(
+    routes.map((route) => route.connectionName),
+  )
+  const missingObstacleConnections = preRoutedConnectionNames.filter(
+    (connectionName) => !routedObstacleConnectionNames.has(connectionName),
+  )
+  if (missingObstacleConnections.length > 0) {
+    return {
+      isGenerated: false,
+      reason:
+        "A03 full reference route is missing obstacle connections: " +
+        missingObstacleConnections.join(", "),
     }
   }
 
@@ -267,10 +291,12 @@ async function writeObstacleDataset(options: GenerationOptions): Promise<void> {
 
   const obstacleDataset: HighDensityObstacleDataset = {
     format: "high_density_obstacle_dataset",
-    formatVersion: 1,
+    formatVersion: 2,
     sourceDataset: "high-density-dataset-z04",
     sourceDatasetCommit: SOURCE_DATASET_COMMIT,
     preRouter: "HighDensitySolverA03",
+    fullRoutabilityCheck: "HighDensitySolverA03",
+    obstaclesFromFullReferenceRoute: true,
     routingWindowMaxWidthMm: 15,
     routingWindowMaxHeightMm: 15,
     connectionPartition: "sorted_connection_names_first_half",

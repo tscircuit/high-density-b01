@@ -7,6 +7,9 @@ const obstacleDataset = obstacleDatasetJson as HighDensityObstacleDataset
 
 test("obstacle dataset 01 contains valid deterministic half-routed samples", () => {
   expect(obstacleDataset.format).toBe("high_density_obstacle_dataset")
+  expect(obstacleDataset.formatVersion).toBe(2)
+  expect(obstacleDataset.fullRoutabilityCheck).toBe("HighDensitySolverA03")
+  expect(obstacleDataset.obstaclesFromFullReferenceRoute).toBe(true)
   expect(obstacleDataset.samples).toHaveLength(100)
 
   for (const sample of obstacleDataset.samples) {
