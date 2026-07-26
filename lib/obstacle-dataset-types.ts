@@ -10,6 +10,21 @@ export type HighDensityRouteObstacle = {
   vias: Array<{ x: number; y: number }>
 }
 
+export type HighDensityRectObstacle = {
+  type: "rect"
+  connectionName: string
+  rootConnectionName?: string
+  center: { x: number; y: number }
+  width: number
+  height: number
+  ccwRotationDegrees?: number
+  zLayers: number[]
+}
+
+export type HighDensityObstacle =
+  | HighDensityRouteObstacle
+  | HighDensityRectObstacle
+
 export type HighDensityObstacleDatasetSample = {
   sampleId: string
   sourceProblemId: number
