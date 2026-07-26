@@ -79,6 +79,7 @@ interface HyperParameters {
   ripViaPenalty: number
   viaBaseCost: number
   greedyMultiplier: number
+  sameRootObstacleCostMultiplier: number
 }
 
 class TypedMinHeap {
@@ -848,6 +849,7 @@ export class HighDensitySolverB01 extends BaseSolver {
       ripViaPenalty: 0.75,
       viaBaseCost: 0.1,
       greedyMultiplier: 1.5,
+      sameRootObstacleCostMultiplier: 1,
       ...props.hyperParameters,
     }
     this.MAX_ITERATIONS = 100e6
@@ -1437,6 +1439,18 @@ export class HighDensitySolverB01 extends BaseSolver {
       }
     }
     return false
+  }
+
+  private hasSameRootObstacle(
+    obstacleRootIds: ObstacleRootId[] | undefined,
+    activeConn: ConnId,
+  ): boolean {
+    if (!obstacleRootIds) return false
+    const activeRootConnectionName = this.connIdToRootNet[activeConn]
+    return obstacleRootIds.some(
+      (obstacleRootId) =>
+        this.obstacleRootNames[obstacleRootId] === activeRootConnectionName,
+    )
   }
 
   private isLateralMoveBlockedByObstacleGeometry(params: {
@@ -2195,6 +2209,10 @@ export class HighDensitySolverB01 extends BaseSolver {
       this._moveRipCount = ripCount
       return
     }
+    const usesSameRootObstacle = this.hasSameRootObstacle(
+      obstacleRootIds,
+      activeConn,
+    )
 
     if (isVia) {
       cost += this.hyperParameters.viaBaseCost
@@ -2257,6 +2275,9 @@ export class HighDensitySolverB01 extends BaseSolver {
       }
     }
 
+    if (usesSameRootObstacle) {
+      cost *= this.hyperParameters.sameRootObstacleCostMultiplier
+    }
     this._moveCost = cost
     this._moveRippedHead = head
     this._moveRipCount = ripCount
