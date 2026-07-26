@@ -589,6 +589,7 @@ export interface HighDensitySolverB01Props {
   stepMultiplier?: number
   traceThickness?: number
   traceMargin?: number
+  obstacleClearanceMargin?: number
   viaMinDistFromBorder?: number
   showPenaltyMap?: boolean
   showUsedCellMap?: boolean
@@ -621,6 +622,7 @@ export class HighDensitySolverB01 extends BaseSolver {
   maxCellCount?: number
   traceThickness: number
   traceMargin: number
+  obstacleClearanceMargin: number
   viaMinDistFromBorder: number
   showPenaltyMap: boolean
   showUsedCellMap: boolean
@@ -796,6 +798,7 @@ export class HighDensitySolverB01 extends BaseSolver {
     this.maxCellCount = props.maxCellCount
     this.traceThickness = props.traceThickness ?? 0.1
     this.traceMargin = props.traceMargin ?? 0.15
+    this.obstacleClearanceMargin = props.obstacleClearanceMargin ?? 0
     this.viaMinDistFromBorder = props.viaMinDistFromBorder ?? 0.15
     this.showPenaltyMap = props.showPenaltyMap ?? false
     this.showUsedCellMap = props.showUsedCellMap ?? false
@@ -828,6 +831,7 @@ export class HighDensitySolverB01 extends BaseSolver {
         stepMultiplier: this.stepMultiplier,
         traceThickness: this.traceThickness,
         traceMargin: this.traceMargin,
+        obstacleClearanceMargin: this.obstacleClearanceMargin,
         viaMinDistFromBorder: this.viaMinDistFromBorder,
         showPenaltyMap: this.showPenaltyMap,
         showUsedCellMap: this.showUsedCellMap,
@@ -1348,7 +1352,9 @@ export class HighDensitySolverB01 extends BaseSolver {
         continue
       }
       const requiredDistance =
-        obstacleTrace.traceRadius + this.traceThickness / 2
+        obstacleTrace.traceRadius +
+        this.traceThickness / 2 +
+        this.obstacleClearanceMargin
       if (
         getSquaredDistanceBetweenSegments({
           firstStart: segmentStart,
@@ -1368,7 +1374,10 @@ export class HighDensitySolverB01 extends BaseSolver {
       ) {
         continue
       }
-      const requiredDistance = obstacleVia.viaRadius + this.traceThickness / 2
+      const requiredDistance =
+        obstacleVia.viaRadius +
+        this.traceThickness / 2 +
+        this.obstacleClearanceMargin
       if (
         getSquaredDistanceFromPointToSegment({
           point: obstacleVia.center,
@@ -1400,7 +1409,10 @@ export class HighDensitySolverB01 extends BaseSolver {
       ) {
         continue
       }
-      const requiredDistance = obstacleTrace.traceRadius + this.viaDiameter / 2
+      const requiredDistance =
+        obstacleTrace.traceRadius +
+        this.viaDiameter / 2 +
+        this.obstacleClearanceMargin
       if (
         getSquaredDistanceFromPointToSegment({
           point: center,
@@ -1419,7 +1431,10 @@ export class HighDensitySolverB01 extends BaseSolver {
       ) {
         continue
       }
-      const requiredDistance = obstacleVia.viaRadius + this.viaDiameter / 2
+      const requiredDistance =
+        obstacleVia.viaRadius +
+        this.viaDiameter / 2 +
+        this.obstacleClearanceMargin
       if (
         (center.x - obstacleVia.center.x) ** 2 +
           (center.y - obstacleVia.center.y) ** 2 <
