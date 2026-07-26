@@ -3,7 +3,7 @@
   "description": "Obstacle-aware high-density PCB trace solver with rip-and-replace",
   "module": "lib/index.ts",
   "type": "module",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "repository": {
     "type": "git",
     "url": "https://github.com/tscircuit/high-density-b01.git"
@@ -60,5 +60,7 @@
   "dependencies": {
     "flatbush": "^4.5.0"
   },
-  "trustedDependencies": ["sharp"]
+  "trustedDependencies": [
+    "sharp"
+  ]
 }
