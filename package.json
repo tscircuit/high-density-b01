@@ -8,6 +8,9 @@
     "type": "git",
     "url": "https://github.com/tscircuit/high-density-b01.git"
   },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "exports": {
     ".": {
       "import": "./lib/index.ts",
