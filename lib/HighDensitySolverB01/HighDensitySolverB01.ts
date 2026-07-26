@@ -5,7 +5,10 @@ import {
   applyAffineTransformToPoint,
 } from "../gridToAffineTransform"
 import { computeMaxIterationsByNodeSizeAndConnectionCount } from "../maxIterationsByNodeSizeAndConnectionCount"
-import type { HighDensityRouteObstacle } from "../obstacle-dataset-types"
+import type {
+  HighDensityObstacle,
+  HighDensityRectObstacle,
+} from "../obstacle-dataset-types"
 import type {
   HighDensityIntraNodeRoute,
   NodeWithPortPoints,
@@ -76,6 +79,7 @@ interface HyperParameters {
   ripViaPenalty: number
   viaBaseCost: number
   greedyMultiplier: number
+  sameRootObstacleCostMultiplier: number
 }
 
 class TypedMinHeap {
@@ -301,11 +305,43 @@ type ObstacleViaPrimitive = {
   viaRadius: number
 }
 
+type ObstacleRectPrimitive = {
+  rootId: ObstacleRootId
+  center: Point2d
+  width: number
+  height: number
+  rotationRadians: number
+  layers: number[]
+}
+
 function toRootNetName(
   connectionName: string,
   rootConnectionName?: string,
 ): string {
   return rootConnectionName ?? connectionName.replace(/_mst\d+$/, "")
+}
+
+function transformPointToRectLocal(
+  point: Point2d,
+  rect: ObstacleRectPrimitive,
+): Point2d {
+  const deltaX = point.x - rect.center.x
+  const deltaY = point.y - rect.center.y
+  const cosine = Math.cos(-rect.rotationRadians)
+  const sine = Math.sin(-rect.rotationRadians)
+  return {
+    x: deltaX * cosine - deltaY * sine,
+    y: deltaX * sine + deltaY * cosine,
+  }
+}
+
+function getRectLocalBounds(rect: ObstacleRectPrimitive): RectBounds {
+  return {
+    minX: -rect.width / 2,
+    minY: -rect.height / 2,
+    maxX: rect.width / 2,
+    maxY: rect.height / 2,
+  }
 }
 
 function clamp(value: number, min: number, max: number) {
@@ -580,7 +616,7 @@ function doesCapsuleIntersectRect(params: {
 
 export interface HighDensitySolverB01Props {
   nodeWithPortPoints: NodeWithPortPoints
-  obstacles: readonly HighDensityRouteObstacle[]
+  obstacles: readonly HighDensityObstacle[]
   highResolutionCellSize?: number
   highResolutionCellThickness?: number
   lowResolutionCellSize?: number
@@ -589,6 +625,7 @@ export interface HighDensitySolverB01Props {
   stepMultiplier?: number
   traceThickness?: number
   traceMargin?: number
+  obstacleClearanceMargin?: number
   viaMinDistFromBorder?: number
   showPenaltyMap?: boolean
   showUsedCellMap?: boolean
@@ -612,7 +649,7 @@ export class HighDensitySolverB01 extends BaseSolver {
   }
 
   nodeWithPortPoints: NodeWithPortPoints
-  obstacles: readonly HighDensityRouteObstacle[]
+  obstacles: readonly HighDensityObstacle[]
   highResolutionCellSize: number
   highResolutionCellThickness: number
   lowResolutionCellSize: number
@@ -621,6 +658,7 @@ export class HighDensitySolverB01 extends BaseSolver {
   maxCellCount?: number
   traceThickness: number
   traceMargin: number
+  obstacleClearanceMargin: number
   viaMinDistFromBorder: number
   showPenaltyMap: boolean
   showUsedCellMap: boolean
@@ -714,6 +752,7 @@ export class HighDensitySolverB01 extends BaseSolver {
   private obstacleRootNames!: RootConnectionName[]
   private obstacleTracePrimitives!: ObstacleTracePrimitive[]
   private obstacleViaPrimitives!: ObstacleViaPrimitive[]
+  private obstacleRectPrimitives!: ObstacleRectPrimitive[]
   private obstacleTraceBlockedCellCount = 0
   private obstacleViaBlockedCellCount = 0
 
@@ -779,6 +818,7 @@ export class HighDensitySolverB01 extends BaseSolver {
       obstacleTraceBlockedCells: this.obstacleTraceBlockedCellCount,
       obstacleViaBlockedCells: this.obstacleViaBlockedCellCount,
       obstacleRootCount: this.obstacleRootNames?.length ?? 0,
+      obstacleRectCount: this.obstacleRectPrimitives?.length ?? 0,
     }
   }
 
@@ -796,6 +836,7 @@ export class HighDensitySolverB01 extends BaseSolver {
     this.maxCellCount = props.maxCellCount
     this.traceThickness = props.traceThickness ?? 0.1
     this.traceMargin = props.traceMargin ?? 0.15
+    this.obstacleClearanceMargin = props.obstacleClearanceMargin ?? 0
     this.viaMinDistFromBorder = props.viaMinDistFromBorder ?? 0.15
     this.showPenaltyMap = props.showPenaltyMap ?? false
     this.showUsedCellMap = props.showUsedCellMap ?? false
@@ -808,6 +849,7 @@ export class HighDensitySolverB01 extends BaseSolver {
       ripViaPenalty: 0.75,
       viaBaseCost: 0.1,
       greedyMultiplier: 1.5,
+      sameRootObstacleCostMultiplier: 1,
       ...props.hyperParameters,
     }
     this.MAX_ITERATIONS = 100e6
@@ -828,6 +870,7 @@ export class HighDensitySolverB01 extends BaseSolver {
         stepMultiplier: this.stepMultiplier,
         traceThickness: this.traceThickness,
         traceMargin: this.traceMargin,
+        obstacleClearanceMargin: this.obstacleClearanceMargin,
         viaMinDistFromBorder: this.viaMinDistFromBorder,
         showPenaltyMap: this.showPenaltyMap,
         showUsedCellMap: this.showUsedCellMap,
@@ -937,6 +980,7 @@ export class HighDensitySolverB01 extends BaseSolver {
     this.obstacleRootNames = []
     this.obstacleTracePrimitives = []
     this.obstacleViaPrimitives = []
+    this.obstacleRectPrimitives = []
     const obstacleError = this.rasterizeObstacles()
     if (obstacleError) {
       this.error = obstacleError
@@ -1011,6 +1055,11 @@ export class HighDensitySolverB01 extends BaseSolver {
       obstacleIndex++
     ) {
       const obstacle = this.obstacles[obstacleIndex]!
+      if (obstacle.type === "rect") {
+        const rectError = this.rasterizeRectObstacle(obstacle, obstacleIndex)
+        if (rectError) return rectError
+        continue
+      }
       if (
         obstacle.traceThickness <= 0 ||
         obstacle.viaDiameter <= 0 ||
@@ -1079,6 +1128,86 @@ export class HighDensitySolverB01 extends BaseSolver {
     this.obstacleViaBlockedCellCount = this.obstacleViaRootIdsByCell.reduce(
       (count, rootIds) => count + (rootIds ? 1 : 0),
       0,
+    )
+    return null
+  }
+
+  private rasterizeRectObstacle(
+    obstacle: HighDensityRectObstacle,
+    obstacleIndex: number,
+  ): string | null {
+    if (
+      !Number.isFinite(obstacle.center.x) ||
+      !Number.isFinite(obstacle.center.y) ||
+      !Number.isFinite(obstacle.width) ||
+      !Number.isFinite(obstacle.height) ||
+      obstacle.width <= 0 ||
+      obstacle.height <= 0
+    ) {
+      return `Rect obstacle ${obstacleIndex} must have finite geometry and positive dimensions`
+    }
+    const layers: number[] = []
+    for (const z of obstacle.zLayers) {
+      const layer = this.zToLayer.get(z)
+      if (layer === undefined) {
+        return `Rect obstacle ${obstacleIndex} uses unavailable layer z=${z}`
+      }
+      pushUnique(layers, layer)
+    }
+    if (layers.length === 0) {
+      return `Rect obstacle ${obstacleIndex} must apply to at least one layer`
+    }
+
+    const obstacleRootId = this.internObstacleRootName(
+      toRootNetName(obstacle.connectionName, obstacle.rootConnectionName),
+    )
+    const primitive: ObstacleRectPrimitive = {
+      rootId: obstacleRootId,
+      center: obstacle.center,
+      width: obstacle.width,
+      height: obstacle.height,
+      rotationRadians: ((obstacle.ccwRotationDegrees ?? 0) * Math.PI) / 180,
+      layers,
+    }
+    this.obstacleRectPrimitives.push(primitive)
+
+    const gridCenter = this.transformBoundsPointToGrid(obstacle.center)
+    const boundingRadiusInBounds = Math.hypot(
+      obstacle.width / 2,
+      obstacle.height / 2,
+    )
+    const traceRadius = this.getConservativeGridRadius(
+      boundingRadiusInBounds + this.traceThickness / 2 + this.traceMargin,
+    )
+    this.forEachCellNearCircle(
+      gridCenter.x,
+      gridCenter.y,
+      traceRadius,
+      (cellId) => {
+        for (const layer of layers) {
+          this.addObstacleRootId({
+            rootIdsByCell: this.obstacleTraceRootIdsFlat,
+            cellIndex: layer * this.planeSize + cellId,
+            obstacleRootId,
+          })
+        }
+      },
+    )
+
+    const viaRadius = this.getConservativeGridRadius(
+      boundingRadiusInBounds + this.viaDiameter / 2 + this.traceMargin,
+    )
+    this.forEachCellNearCircle(
+      gridCenter.x,
+      gridCenter.y,
+      viaRadius,
+      (cellId) => {
+        this.addObstacleRootId({
+          rootIdsByCell: this.obstacleViaRootIdsByCell,
+          cellIndex: cellId,
+          obstacleRootId,
+        })
+      },
     )
     return null
   }
@@ -1312,6 +1441,18 @@ export class HighDensitySolverB01 extends BaseSolver {
     return false
   }
 
+  private hasSameRootObstacle(
+    obstacleRootIds: ObstacleRootId[] | undefined,
+    activeConn: ConnId,
+  ): boolean {
+    if (!obstacleRootIds) return false
+    const activeRootConnectionName = this.connIdToRootNet[activeConn]
+    return obstacleRootIds.some(
+      (obstacleRootId) =>
+        this.obstacleRootNames[obstacleRootId] === activeRootConnectionName,
+    )
+  }
+
   private isLateralMoveBlockedByObstacleGeometry(params: {
     activeConn: ConnId
     layer: number
@@ -1348,7 +1489,9 @@ export class HighDensitySolverB01 extends BaseSolver {
         continue
       }
       const requiredDistance =
-        obstacleTrace.traceRadius + this.traceThickness / 2
+        obstacleTrace.traceRadius +
+        this.traceThickness / 2 +
+        this.obstacleClearanceMargin
       if (
         getSquaredDistanceBetweenSegments({
           firstStart: segmentStart,
@@ -1368,7 +1511,10 @@ export class HighDensitySolverB01 extends BaseSolver {
       ) {
         continue
       }
-      const requiredDistance = obstacleVia.viaRadius + this.traceThickness / 2
+      const requiredDistance =
+        obstacleVia.viaRadius +
+        this.traceThickness / 2 +
+        this.obstacleClearanceMargin
       if (
         getSquaredDistanceFromPointToSegment({
           point: obstacleVia.center,
@@ -1376,6 +1522,25 @@ export class HighDensitySolverB01 extends BaseSolver {
           segmentEnd,
         }) <
         requiredDistance * requiredDistance
+      ) {
+        return true
+      }
+    }
+
+    for (const obstacleRect of this.obstacleRectPrimitives) {
+      if (
+        !obstacleRect.layers.includes(params.layer) ||
+        this.obstacleRootNames[obstacleRect.rootId] === activeRootConnectionName
+      ) {
+        continue
+      }
+      if (
+        doesCapsuleIntersectRect({
+          segmentStart: transformPointToRectLocal(segmentStart, obstacleRect),
+          segmentEnd: transformPointToRectLocal(segmentEnd, obstacleRect),
+          radius: this.traceThickness / 2 + this.obstacleClearanceMargin,
+          rect: getRectLocalBounds(obstacleRect),
+        })
       ) {
         return true
       }
@@ -1400,7 +1565,10 @@ export class HighDensitySolverB01 extends BaseSolver {
       ) {
         continue
       }
-      const requiredDistance = obstacleTrace.traceRadius + this.viaDiameter / 2
+      const requiredDistance =
+        obstacleTrace.traceRadius +
+        this.viaDiameter / 2 +
+        this.obstacleClearanceMargin
       if (
         getSquaredDistanceFromPointToSegment({
           point: center,
@@ -1419,10 +1587,33 @@ export class HighDensitySolverB01 extends BaseSolver {
       ) {
         continue
       }
-      const requiredDistance = obstacleVia.viaRadius + this.viaDiameter / 2
+      const requiredDistance =
+        obstacleVia.viaRadius +
+        this.viaDiameter / 2 +
+        this.obstacleClearanceMargin
       if (
         (center.x - obstacleVia.center.x) ** 2 +
           (center.y - obstacleVia.center.y) ** 2 <
+        requiredDistance * requiredDistance
+      ) {
+        return true
+      }
+    }
+
+    for (const obstacleRect of this.obstacleRectPrimitives) {
+      if (
+        this.obstacleRootNames[obstacleRect.rootId] === activeRootConnectionName
+      ) {
+        continue
+      }
+      const localCenter = transformPointToRectLocal(center, obstacleRect)
+      const requiredDistance =
+        this.viaDiameter / 2 + this.obstacleClearanceMargin
+      if (
+        getSquaredDistanceFromPointToRect({
+          point: localCenter,
+          rect: getRectLocalBounds(obstacleRect),
+        }) <
         requiredDistance * requiredDistance
       ) {
         return true
@@ -2018,6 +2209,10 @@ export class HighDensitySolverB01 extends BaseSolver {
       this._moveRipCount = ripCount
       return
     }
+    const usesSameRootObstacle = this.hasSameRootObstacle(
+      obstacleRootIds,
+      activeConn,
+    )
 
     if (isVia) {
       cost += this.hyperParameters.viaBaseCost
@@ -2080,6 +2275,9 @@ export class HighDensitySolverB01 extends BaseSolver {
       }
     }
 
+    if (usesSameRootObstacle) {
+      cost *= this.hyperParameters.sameRootObstacleCostMultiplier
+    }
     this._moveCost = cost
     this._moveRippedHead = head
     this._moveRipCount = ripCount
@@ -2723,6 +2921,7 @@ export class HighDensitySolverB01 extends BaseSolver {
       height: number
       fill?: string
       stroke?: string
+      label?: string
     }> = []
 
     rects.push({
@@ -2785,6 +2984,17 @@ export class HighDensitySolverB01 extends BaseSolver {
     }
 
     for (const obstacle of this.obstacles) {
+      if (obstacle.type === "rect") {
+        rects.push({
+          center: obstacle.center,
+          width: obstacle.width,
+          height: obstacle.height,
+          fill: "rgba(128,0,128,0.12)",
+          stroke: "purple",
+          label: `fixed obstacle ${obstacle.connectionName}`,
+        })
+        continue
+      }
       pushRouteLines({
         route: obstacle.route,
         connectionName: obstacle.connectionName,
