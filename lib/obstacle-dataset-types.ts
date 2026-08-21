@@ -7,7 +7,13 @@ export type HighDensityRouteObstacle = {
   traceThickness: number
   viaDiameter: number
   route: HighDensityRoutePoint[]
-  vias: Array<{ x: number; y: number }>
+  vias: Array<{
+    x: number
+    y: number
+    /** Both endpoints are required for a buried via; omitted means all layers. */
+    zStart?: number
+    zEnd?: number
+  }>
 }
 
 export type HighDensityRectObstacle = {

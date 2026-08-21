@@ -313,6 +313,7 @@ type ObstacleViaPrimitive = {
   rootId: ObstacleRootId
   center: Point2d
   viaRadius: number
+  layers: number[]
 }
 
 type ObstacleRectPrimitive = {
@@ -1093,8 +1094,10 @@ export class HighDensitySolverB01 extends BaseSolver {
         if (
           !Number.isFinite(segmentStart.x) ||
           !Number.isFinite(segmentStart.y) ||
+          !Number.isFinite(segmentStart.z) ||
           !Number.isFinite(segmentEnd.x) ||
-          !Number.isFinite(segmentEnd.y)
+          !Number.isFinite(segmentEnd.y) ||
+          !Number.isFinite(segmentEnd.z)
         ) {
           return `Obstacle ${obstacleIndex} contains non-finite route coordinates`
         }
@@ -1110,12 +1113,20 @@ export class HighDensitySolverB01 extends BaseSolver {
             obstacleRootId,
             obstacleTraceThickness: obstacle.traceThickness,
           })
-        } else {
-          this.rasterizeObstacleVia({
+        } else if (
+          !obstacle.vias.some(
+            (via) => via.x === segmentEnd.x && via.y === segmentEnd.y,
+          )
+        ) {
+          const viaError = this.rasterizeObstacleVia({
             center: segmentEnd,
             obstacleRootId,
             obstacleViaDiameter: obstacle.viaDiameter,
+            zStart: segmentStart.z,
+            zEnd: segmentEnd.z,
+            obstacleIndex,
           })
+          if (viaError) return viaError
         }
       }
 
@@ -1123,11 +1134,15 @@ export class HighDensitySolverB01 extends BaseSolver {
         if (!Number.isFinite(via.x) || !Number.isFinite(via.y)) {
           return `Obstacle ${obstacleIndex} contains non-finite via coordinates`
         }
-        this.rasterizeObstacleVia({
+        const viaError = this.rasterizeObstacleVia({
           center: via,
           obstacleRootId,
           obstacleViaDiameter: obstacle.viaDiameter,
+          zStart: via.zStart,
+          zEnd: via.zEnd,
+          obstacleIndex,
         })
+        if (viaError) return viaError
       }
     }
 
@@ -1297,11 +1312,31 @@ export class HighDensitySolverB01 extends BaseSolver {
     center: Point2d
     obstacleRootId: ObstacleRootId
     obstacleViaDiameter: number
-  }): void {
+    zStart?: number
+    zEnd?: number
+    obstacleIndex: number
+  }): string | null {
+    if ((params.zStart === undefined) !== (params.zEnd === undefined)) {
+      return `Obstacle ${params.obstacleIndex} via must provide both zStart and zEnd`
+    }
+    let layers = Array.from({ length: this.layers }, (_, layer) => layer)
+    if (params.zStart !== undefined && params.zEnd !== undefined) {
+      if (!Number.isFinite(params.zStart) || !Number.isFinite(params.zEnd)) {
+        return `Obstacle ${params.obstacleIndex} contains a non-finite via layer span`
+      }
+      const minZ = Math.min(params.zStart, params.zEnd)
+      const maxZ = Math.max(params.zStart, params.zEnd)
+      layers = this.availableZ.flatMap((z, layer) =>
+        z >= minZ && z <= maxZ ? [layer] : [],
+      )
+    }
+    if (layers.length === 0) return null
+
     this.obstacleViaPrimitives.push({
       rootId: params.obstacleRootId,
       center: params.center,
       viaRadius: params.obstacleViaDiameter / 2,
+      layers,
     })
     const gridCenter = this.transformBoundsPointToGrid(params.center)
     const traceClearanceRadius = this.getConservativeGridRadius(
@@ -1330,7 +1365,7 @@ export class HighDensitySolverB01 extends BaseSolver {
             cellRect.maxY,
           )
         ) {
-          for (let layer = 0; layer < this.layers; layer++) {
+          for (const layer of layers) {
             this.addObstacleRootId({
               rootIdsByCell: this.obstacleTraceRootIdsFlat,
               cellIndex: layer * this.planeSize + cellId,
@@ -1357,6 +1392,7 @@ export class HighDensitySolverB01 extends BaseSolver {
         }
       },
     )
+    return null
   }
 
   private forEachCellNearSegment(
@@ -1517,6 +1553,7 @@ export class HighDensitySolverB01 extends BaseSolver {
 
     for (const obstacleVia of this.obstacleViaPrimitives) {
       if (
+        !obstacleVia.layers.includes(params.layer) ||
         this.obstacleRootNames[obstacleVia.rootId] === activeRootConnectionName
       ) {
         continue
