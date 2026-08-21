@@ -62,6 +62,15 @@ interface ConnectionSeg {
   endZ: number
   endCellId: number
   endPoint: { x: number; y: number; z: number }
+  connectionAliases: ConnectionAlias[]
+}
+
+interface ConnectionAlias {
+  connectionName: string
+  rootConnectionName: string
+  startPoint: PortPoint
+  endPoint: PortPoint
+  reversedFromCanonical: boolean
 }
 
 interface SolvedRouteInternal {
@@ -70,6 +79,7 @@ interface SolvedRouteInternal {
   viaCellIds: Int32Array
   startPoint: { x: number; y: number; z: number }
   endPoint: { x: number; y: number; z: number }
+  connectionAliases: ConnectionAlias[]
 }
 
 interface HyperParameters {
@@ -303,6 +313,7 @@ type ObstacleViaPrimitive = {
   rootId: ObstacleRootId
   center: Point2d
   viaRadius: number
+  layers: number[]
 }
 
 type ObstacleRectPrimitive = {
@@ -1083,8 +1094,10 @@ export class HighDensitySolverB01 extends BaseSolver {
         if (
           !Number.isFinite(segmentStart.x) ||
           !Number.isFinite(segmentStart.y) ||
+          !Number.isFinite(segmentStart.z) ||
           !Number.isFinite(segmentEnd.x) ||
-          !Number.isFinite(segmentEnd.y)
+          !Number.isFinite(segmentEnd.y) ||
+          !Number.isFinite(segmentEnd.z)
         ) {
           return `Obstacle ${obstacleIndex} contains non-finite route coordinates`
         }
@@ -1100,12 +1113,20 @@ export class HighDensitySolverB01 extends BaseSolver {
             obstacleRootId,
             obstacleTraceThickness: obstacle.traceThickness,
           })
-        } else {
-          this.rasterizeObstacleVia({
+        } else if (
+          !obstacle.vias.some(
+            (via) => via.x === segmentEnd.x && via.y === segmentEnd.y,
+          )
+        ) {
+          const viaError = this.rasterizeObstacleVia({
             center: segmentEnd,
             obstacleRootId,
             obstacleViaDiameter: obstacle.viaDiameter,
+            zStart: segmentStart.z,
+            zEnd: segmentEnd.z,
+            obstacleIndex,
           })
+          if (viaError) return viaError
         }
       }
 
@@ -1113,11 +1134,15 @@ export class HighDensitySolverB01 extends BaseSolver {
         if (!Number.isFinite(via.x) || !Number.isFinite(via.y)) {
           return `Obstacle ${obstacleIndex} contains non-finite via coordinates`
         }
-        this.rasterizeObstacleVia({
+        const viaError = this.rasterizeObstacleVia({
           center: via,
           obstacleRootId,
           obstacleViaDiameter: obstacle.viaDiameter,
+          zStart: via.zStart,
+          zEnd: via.zEnd,
+          obstacleIndex,
         })
+        if (viaError) return viaError
       }
     }
 
@@ -1287,11 +1312,31 @@ export class HighDensitySolverB01 extends BaseSolver {
     center: Point2d
     obstacleRootId: ObstacleRootId
     obstacleViaDiameter: number
-  }): void {
+    zStart?: number
+    zEnd?: number
+    obstacleIndex: number
+  }): string | null {
+    if ((params.zStart === undefined) !== (params.zEnd === undefined)) {
+      return `Obstacle ${params.obstacleIndex} via must provide both zStart and zEnd`
+    }
+    let layers = Array.from({ length: this.layers }, (_, layer) => layer)
+    if (params.zStart !== undefined && params.zEnd !== undefined) {
+      if (!Number.isFinite(params.zStart) || !Number.isFinite(params.zEnd)) {
+        return `Obstacle ${params.obstacleIndex} contains a non-finite via layer span`
+      }
+      const minZ = Math.min(params.zStart, params.zEnd)
+      const maxZ = Math.max(params.zStart, params.zEnd)
+      layers = this.availableZ.flatMap((z, layer) =>
+        z >= minZ && z <= maxZ ? [layer] : [],
+      )
+    }
+    if (layers.length === 0) return null
+
     this.obstacleViaPrimitives.push({
       rootId: params.obstacleRootId,
       center: params.center,
       viaRadius: params.obstacleViaDiameter / 2,
+      layers,
     })
     const gridCenter = this.transformBoundsPointToGrid(params.center)
     const traceClearanceRadius = this.getConservativeGridRadius(
@@ -1320,7 +1365,7 @@ export class HighDensitySolverB01 extends BaseSolver {
             cellRect.maxY,
           )
         ) {
-          for (let layer = 0; layer < this.layers; layer++) {
+          for (const layer of layers) {
             this.addObstacleRootId({
               rootIdsByCell: this.obstacleTraceRootIdsFlat,
               cellIndex: layer * this.planeSize + cellId,
@@ -1347,6 +1392,7 @@ export class HighDensitySolverB01 extends BaseSolver {
         }
       },
     )
+    return null
   }
 
   private forEachCellNearSegment(
@@ -1507,6 +1553,7 @@ export class HighDensitySolverB01 extends BaseSolver {
 
     for (const obstacleVia of this.obstacleViaPrimitives) {
       if (
+        !obstacleVia.layers.includes(params.layer) ||
         this.obstacleRootNames[obstacleVia.rootId] === activeRootConnectionName
       ) {
         continue
@@ -2455,7 +2502,7 @@ export class HighDensitySolverB01 extends BaseSolver {
     }
 
     const segs: ConnectionSeg[] = []
-    const seenSegmentKeys = new Set<string>()
+    const segmentByKey = new Map<string, ConnectionSeg>()
 
     for (const [name, conn] of byName) {
       const pts = conn.points
@@ -2473,15 +2520,43 @@ export class HighDensitySolverB01 extends BaseSolver {
           endpointA < endpointB
             ? `${endpointA}|${endpointB}`
             : `${endpointB}|${endpointA}`
-        const netName = conn.rootConnectionName ?? name
-        const segKey = `${netName}|${orderedEndpoints}`
-        if (seenSegmentKeys.has(segKey)) {
-          this.overlapFriendlyRootNets.add(netName)
+        const rootConnectionName = this.connIdToRootNet[connId]!
+        const segKey = `${rootConnectionName}|${orderedEndpoints}`
+        const existingSegment = segmentByKey.get(segKey)
+        if (existingSegment) {
+          this.overlapFriendlyRootNets.add(rootConnectionName)
+          if (
+            !existingSegment.connectionAliases.some(
+              (alias) => alias.connectionName === name,
+            )
+          ) {
+            const isForward =
+              existingSegment.startZ === s.z &&
+              existingSegment.startCellId === s.cellId &&
+              existingSegment.endZ === e.z &&
+              existingSegment.endCellId === e.cellId
+            const isReverse =
+              existingSegment.startZ === e.z &&
+              existingSegment.startCellId === e.cellId &&
+              existingSegment.endZ === s.z &&
+              existingSegment.endCellId === s.cellId
+            if (!isForward && !isReverse) {
+              throw new Error(
+                `Connection alias ${name} does not match canonical segment ${segKey}`,
+              )
+            }
+            existingSegment.connectionAliases.push({
+              connectionName: name,
+              rootConnectionName,
+              startPoint,
+              endPoint,
+              reversedFromCanonical: !isForward && isReverse,
+            })
+          }
           continue
         }
-        seenSegmentKeys.add(segKey)
 
-        segs.push({
+        const segment: ConnectionSeg = {
           connId,
           startZ: s.z,
           startCellId: s.cellId,
@@ -2489,7 +2564,18 @@ export class HighDensitySolverB01 extends BaseSolver {
           endZ: e.z,
           endCellId: e.cellId,
           endPoint,
-        })
+          connectionAliases: [
+            {
+              connectionName: name,
+              rootConnectionName,
+              startPoint,
+              endPoint,
+              reversedFromCanonical: false,
+            },
+          ],
+        }
+        segmentByKey.set(segKey, segment)
+        segs.push(segment)
       }
     }
 
@@ -2614,6 +2700,7 @@ export class HighDensitySolverB01 extends BaseSolver {
       viaCellIds: Int32Array.from(viaCellIds),
       startPoint: this.activeConnSeg!.startPoint,
       endPoint: this.activeConnSeg!.endPoint,
+      connectionAliases: this.activeConnSeg!.connectionAliases,
     })
     this.solvedRoutes[connId] = solvedRoutes
 
@@ -2861,6 +2948,7 @@ export class HighDensitySolverB01 extends BaseSolver {
           endZ,
           endCellId: last - endZ * this.planeSize,
           endPoint: route.endPoint,
+          connectionAliases: route.connectionAliases,
         })
       }
     }
@@ -3124,7 +3212,6 @@ export class HighDensitySolverB01 extends BaseSolver {
     for (let connId = 0; connId < this.solvedRoutes.length; connId++) {
       const routes = this.getSolvedRoutesForConn(connId)
       if (routes.length === 0) continue
-      const connName = this.connIdToName[connId]!
       for (const route of routes) {
         const points = Array.from(route.states, (state) => {
           const z = Math.floor(state / this.planeSize)
@@ -3139,26 +3226,32 @@ export class HighDensitySolverB01 extends BaseSolver {
             z: this.layerToZ.get(z) ?? z,
           }
         })
-        if (points.length > 0) {
-          points[0] = { ...route.startPoint }
-          if (points.length > 1) {
-            points[points.length - 1] = { ...route.endPoint }
+        const vias = Array.from(route.viaCellIds, (cellId) =>
+          applyAffineTransformToPoint(t, {
+            x: this.cellCenterX[cellId]!,
+            y: this.cellCenterY[cellId]!,
+          }),
+        )
+        for (const alias of route.connectionAliases) {
+          const aliasPoints = (
+            alias.reversedFromCanonical ? [...points].reverse() : points
+          ).map((point) => ({ ...point }))
+          if (aliasPoints.length > 0) {
+            aliasPoints[0] = { ...alias.startPoint }
+            if (aliasPoints.length > 1) {
+              aliasPoints[aliasPoints.length - 1] = { ...alias.endPoint }
+            }
           }
+          result.push({
+            connectionName: alias.connectionName,
+            rootConnectionName: alias.rootConnectionName,
+            regionId: this.nodeWithPortPoints.capacityMeshNodeId,
+            traceThickness: this.traceThickness,
+            viaDiameter: this.viaDiameter,
+            route: aliasPoints,
+            vias: vias.map((via) => ({ ...via })),
+          })
         }
-        result.push({
-          connectionName: connName,
-          rootConnectionName: this.connIdToRootNet[connId],
-          regionId: this.nodeWithPortPoints.capacityMeshNodeId,
-          traceThickness: this.traceThickness,
-          viaDiameter: this.viaDiameter,
-          route: points,
-          vias: Array.from(route.viaCellIds, (cellId) =>
-            applyAffineTransformToPoint(t, {
-              x: this.cellCenterX[cellId]!,
-              y: this.cellCenterY[cellId]!,
-            }),
-          ),
-        })
       }
     }
 
