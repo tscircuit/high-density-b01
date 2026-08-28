@@ -46,6 +46,48 @@ Set `rootConnectionName` on obstacles whenever it is known. B01 uses the root
 name to permit intentional same-net contact while continuing to block foreign
 nets.
 
+## HighDensitySolverB02
+
+`HighDensitySolverB02` targets dense rectangular nodes where a full B01 search
+spends most of its time repeatedly ripping up nearly complete solutions. It
+runs a deliberately short B01 pass to obtain a clean partial seed, identifies
+the missing and physically conflicting routes, then reroutes only that bounded
+subset. A result is published only if it:
+
+- contains every linked port-point pair exactly once;
+- preserves endpoint identity, electrical root, and region identity;
+- uses co-located layer transitions with matching, in-bounds vias; and
+- has zero trace/via geometry violations at the requested `traceMargin`.
+
+The bounded first pass is an intentional phase of B02, not a silent fallback.
+B02 fails loudly when the node is outside its supported shape, has physically
+overlapping terminals, contains pre-existing obstacles, or cannot be repaired
+within its bounded subset. Call `HighDensitySolverB02.isApplicable(props)`
+before adding it to a solver portfolio.
+
+```ts
+import {
+  defaultB02Params,
+  HighDensitySolverB02,
+} from "@tscircuit/high-density-b01"
+
+const solver = new HighDensitySolverB02({
+  ...defaultB02Params,
+  nodeWithPortPoints,
+  obstacles: [],
+})
+
+solver.solve()
+if (!solver.solved) throw new Error(solver.error)
+const routes = solver.getOutput()
+```
+
+On the Bug 101 dominant 11-pair node, the previous portfolio spent about
+51.6 seconds. The extracted B02 regression solves and strictly validates the
+same endpoints in well under one second on the development machine. The
+committed routed SVG snapshot makes this topology and its layer transitions
+reviewable without running the benchmark.
+
 ## Obstacle dataset 01
 
 `fixtures/obstacle-dataset01/obstacle-dataset01.json` is derived from
