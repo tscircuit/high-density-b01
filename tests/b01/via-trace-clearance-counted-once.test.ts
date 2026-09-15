@@ -30,7 +30,6 @@ test("B01 counts trace clearance once when placing a nearby via", () => {
   const routes = solver.getOutput()
   expect(routes).toHaveLength(2)
   const viaRoute = routes.find((route) => route.connectionName === "via")!
-  console.log(JSON.stringify({ viaBesideTrace: viaRoute.vias }))
   expect(viaRoute.vias).toHaveLength(1)
   // A centered via clears the foreign trace by at least 0.4 - 0.15 - 0.05.
   // Routing it away from the center would indicate a second clearance halo.

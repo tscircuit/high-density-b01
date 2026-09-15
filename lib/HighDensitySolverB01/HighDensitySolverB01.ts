@@ -735,6 +735,10 @@ export class HighDensitySolverB01 extends BaseSolver {
   private usedIndicesByConn!: Array<number[] | undefined>
   private unsolvedSegs!: ConnectionSeg[]
   private solvedRoutes!: Array<SolvedRouteInternal[] | undefined>
+  private routeCopperGeometry = new WeakMap<
+    SolvedRouteInternal,
+    { points: Array<Point2d & { z: number }>; vias: Point2d[] }
+  >()
 
   private activeConnSeg: ConnectionSeg | null = null
   private activeConnId: ConnId = -1
@@ -2450,6 +2454,87 @@ export class HighDensitySolverB01 extends BaseSolver {
         this.pushFlatOccupants(z * this.planeSize + occCellId, activeConn, occs)
       }
     })
+    const center = applyAffineTransformToPoint(this.gridToBoundsTransform, {
+      x: cx,
+      y: cy,
+    })
+    // Occupancy cells already include a clearance halo. Their overlap is only
+    // a broad-phase query; applying another halo would count clearance twice.
+    let conflictCount = 0
+    for (const connId of occs) {
+      if (this.doesViaConflictWithConnection(center, connId)) {
+        occs[conflictCount++] = connId
+      }
+    }
+    occs.length = conflictCount
+  }
+
+  private doesViaConflictWithConnection(
+    center: Point2d,
+    connId: ConnId,
+  ): boolean {
+    const routes = this.getSolvedRoutesForConn(connId)
+    // Unrouted connections still reserve their fixed port cells.
+    if (routes.length === 0) return true
+    const traceDistance =
+      this.viaDiameter / 2 + this.traceThickness / 2 + this.traceMargin
+    const viaDistance = this.viaDiameter + this.traceMargin
+    for (const route of routes) {
+      const copper = this.getRouteCopperGeometry(route)
+      for (const via of copper.vias) {
+        if (
+          (center.x - via.x) ** 2 + (center.y - via.y) ** 2 <
+          viaDistance ** 2
+        ) {
+          return true
+        }
+      }
+      for (let index = 1; index < copper.points.length; index++) {
+        const start = copper.points[index - 1]!
+        const end = copper.points[index]!
+        if (start.z !== end.z) continue
+        if (
+          getSquaredDistanceFromPointToSegment({
+            point: center,
+            segmentStart: start,
+            segmentEnd: end,
+          }) <
+          traceDistance ** 2
+        )
+          return true
+      }
+    }
+    return false
+  }
+
+  private getRouteCopperGeometry(route: SolvedRouteInternal): {
+    points: Array<Point2d & { z: number }>
+    vias: Point2d[]
+  } {
+    const cached = this.routeCopperGeometry.get(route)
+    if (cached) return cached
+    const points = Array.from(route.states, (state) => {
+      const layer = Math.floor(state / this.planeSize)
+      const cellId = state - layer * this.planeSize
+      return {
+        ...applyAffineTransformToPoint(this.gridToBoundsTransform, {
+          x: this.cellCenterX[cellId]!,
+          y: this.cellCenterY[cellId]!,
+        }),
+        z: this.availableZ[layer]!,
+      }
+    })
+    if (points.length > 0) points[0] = { ...route.startPoint }
+    if (points.length > 1) points[points.length - 1] = { ...route.endPoint }
+    const vias = Array.from(route.viaCellIds, (cellId) =>
+      applyAffineTransformToPoint(this.gridToBoundsTransform, {
+        x: this.cellCenterX[cellId]!,
+        y: this.cellCenterY[cellId]!,
+      }),
+    )
+    const copper = { points, vias }
+    this.routeCopperGeometry.set(route, copper)
+    return copper
   }
 
   private fillTraceOccupants(
@@ -2886,6 +2971,8 @@ export class HighDensitySolverB01 extends BaseSolver {
     indices: number[],
     displacedByVias: ConnId[],
   ) {
+    this.fillViaOccupants(sourceCellId, connId)
+    for (const occupant of this._viaOccs) pushUnique(displacedByVias, occupant)
     const cx = this.cellCenterX[sourceCellId]!
     const cy = this.cellCenterY[sourceCellId]!
     this.forEachCellNearCircle(cx, cy, this.viaKeepoutRadius, (cellId) => {
@@ -2910,15 +2997,8 @@ export class HighDensitySolverB01 extends BaseSolver {
         ) {
           continue
         }
-        this.fillTraceOccupants(flatIdx, connId, this._cellOccs)
-        if (this._cellOccs.length > 0) {
-          for (let i = 0; i < this._cellOccs.length; i++) {
-            pushUnique(displacedByVias, this._cellOccs[i]!)
-          }
-          this.replaceOccupants(flatIdx, connId)
-          indices.push(flatIdx)
-          continue
-        }
+        // Distinct copper may have overlapping clearance halos. Preserve both
+        // occupants until ripTrace removes only the actual conflicting route.
         const existing = this.usedCellsFlat[flatIdx]!
         if (existing !== -1 && existing !== connId) {
           this.addSharedOccupant(flatIdx, connId)
