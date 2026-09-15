@@ -8,6 +8,7 @@ import { computeMaxIterationsByNodeSizeAndConnectionCount } from "../maxIteratio
 import type {
   HighDensityObstacle,
   HighDensityRectObstacle,
+  HighDensityCircleObstacle,
 } from "../obstacle-dataset-types"
 import type {
   HighDensityIntraNodeRoute,
@@ -309,10 +310,10 @@ type ObstacleTracePrimitive = {
   traceRadius: number
 }
 
-type ObstacleViaPrimitive = {
+type ObstacleCirclePrimitive = {
   rootId: ObstacleRootId
   center: Point2d
-  viaRadius: number
+  radius: number
   layers: number[]
 }
 
@@ -709,6 +710,7 @@ export class HighDensitySolverB01 extends BaseSolver {
   cellRow!: Int32Array
   cellCol!: Int32Array
   viaAllowed!: Uint8Array
+  private usesPhysicalViaCenters = false
   neighborOffset!: Int32Array
   neighborIds!: Int32Array
   neighborCosts!: Float32Array
@@ -733,6 +735,10 @@ export class HighDensitySolverB01 extends BaseSolver {
   private usedIndicesByConn!: Array<number[] | undefined>
   private unsolvedSegs!: ConnectionSeg[]
   private solvedRoutes!: Array<SolvedRouteInternal[] | undefined>
+  private routeCopperGeometry = new WeakMap<
+    SolvedRouteInternal,
+    { points: Array<Point2d & { z: number }>; vias: Point2d[] }
+  >()
 
   private activeConnSeg: ConnectionSeg | null = null
   private activeConnId: ConnId = -1
@@ -762,7 +768,7 @@ export class HighDensitySolverB01 extends BaseSolver {
   private obstacleRootNameToId!: Map<RootConnectionName, ObstacleRootId>
   private obstacleRootNames!: RootConnectionName[]
   private obstacleTracePrimitives!: ObstacleTracePrimitive[]
-  private obstacleViaPrimitives!: ObstacleViaPrimitive[]
+  private obstacleCirclePrimitives!: ObstacleCirclePrimitive[]
   private obstacleRectPrimitives!: ObstacleRectPrimitive[]
   private obstacleTraceBlockedCellCount = 0
   private obstacleViaBlockedCellCount = 0
@@ -990,7 +996,7 @@ export class HighDensitySolverB01 extends BaseSolver {
     this.obstacleRootNameToId = new Map()
     this.obstacleRootNames = []
     this.obstacleTracePrimitives = []
-    this.obstacleViaPrimitives = []
+    this.obstacleCirclePrimitives = []
     this.obstacleRectPrimitives = []
     const obstacleError = this.rasterizeObstacles()
     if (obstacleError) {
@@ -1066,6 +1072,14 @@ export class HighDensitySolverB01 extends BaseSolver {
       obstacleIndex++
     ) {
       const obstacle = this.obstacles[obstacleIndex]!
+      if (obstacle.type === "circle") {
+        const circleError = this.rasterizeCircleObstacle(
+          obstacle,
+          obstacleIndex,
+        )
+        if (circleError) return circleError
+        continue
+      }
       if (obstacle.type === "rect") {
         const rectError = this.rasterizeRectObstacle(obstacle, obstacleIndex)
         if (rectError) return rectError
@@ -1154,6 +1168,40 @@ export class HighDensitySolverB01 extends BaseSolver {
       (count, rootIds) => count + (rootIds ? 1 : 0),
       0,
     )
+    return null
+  }
+
+  private rasterizeCircleObstacle(
+    obstacle: HighDensityCircleObstacle,
+    obstacleIndex: number,
+  ): string | null {
+    if (
+      !Number.isFinite(obstacle.center.x) ||
+      !Number.isFinite(obstacle.center.y) ||
+      !Number.isFinite(obstacle.radius) ||
+      obstacle.radius <= 0
+    ) {
+      return `Circle obstacle ${obstacleIndex} must have finite geometry and positive radius`
+    }
+    const layers: number[] = []
+    for (const z of obstacle.zLayers) {
+      const layer = this.zToLayer.get(z)
+      if (layer === undefined) {
+        return `Circle obstacle ${obstacleIndex} uses unavailable layer z=${z}`
+      }
+      pushUnique(layers, layer)
+    }
+    if (layers.length === 0) {
+      return `Circle obstacle ${obstacleIndex} must apply to at least one layer`
+    }
+    this.rasterizeObstacleCircle({
+      center: obstacle.center,
+      obstacleRootId: this.internObstacleRootName(
+        toRootNetName(obstacle.connectionName, obstacle.rootConnectionName),
+      ),
+      obstacleRadius: obstacle.radius,
+      layers,
+    })
     return null
   }
 
@@ -1332,20 +1380,34 @@ export class HighDensitySolverB01 extends BaseSolver {
     }
     if (layers.length === 0) return null
 
-    this.obstacleViaPrimitives.push({
+    this.rasterizeObstacleCircle({
+      center: params.center,
+      obstacleRootId: params.obstacleRootId,
+      obstacleRadius: params.obstacleViaDiameter / 2,
+      layers,
+    })
+    return null
+  }
+
+  private rasterizeObstacleCircle(params: {
+    center: Point2d
+    obstacleRootId: ObstacleRootId
+    obstacleRadius: number
+    layers: number[]
+  }): void {
+    const { layers } = params
+    this.obstacleCirclePrimitives.push({
       rootId: params.obstacleRootId,
       center: params.center,
-      viaRadius: params.obstacleViaDiameter / 2,
+      radius: params.obstacleRadius,
       layers,
     })
     const gridCenter = this.transformBoundsPointToGrid(params.center)
     const traceClearanceRadius = this.getConservativeGridRadius(
-      params.obstacleViaDiameter / 2 +
-        this.traceThickness / 2 +
-        this.traceMargin,
+      params.obstacleRadius + this.traceThickness / 2 + this.traceMargin,
     )
     const viaClearanceRadius = this.getConservativeGridRadius(
-      params.obstacleViaDiameter / 2 + this.viaDiameter / 2 + this.traceMargin,
+      params.obstacleRadius + this.viaDiameter / 2 + this.traceMargin,
     )
 
     this.forEachCellNearCircle(
@@ -1392,7 +1454,6 @@ export class HighDensitySolverB01 extends BaseSolver {
         }
       },
     )
-    return null
   }
 
   private forEachCellNearSegment(
@@ -1551,20 +1612,21 @@ export class HighDensitySolverB01 extends BaseSolver {
       }
     }
 
-    for (const obstacleVia of this.obstacleViaPrimitives) {
+    for (const obstacleCircle of this.obstacleCirclePrimitives) {
       if (
-        !obstacleVia.layers.includes(params.layer) ||
-        this.obstacleRootNames[obstacleVia.rootId] === activeRootConnectionName
+        !obstacleCircle.layers.includes(params.layer) ||
+        this.obstacleRootNames[obstacleCircle.rootId] ===
+          activeRootConnectionName
       ) {
         continue
       }
       const requiredDistance =
-        obstacleVia.viaRadius +
+        obstacleCircle.radius +
         this.traceThickness / 2 +
         this.obstacleClearanceMargin
       if (
         getSquaredDistanceFromPointToSegment({
-          point: obstacleVia.center,
+          point: obstacleCircle.center,
           segmentStart,
           segmentEnd,
         }) <
@@ -1628,19 +1690,20 @@ export class HighDensitySolverB01 extends BaseSolver {
       }
     }
 
-    for (const obstacleVia of this.obstacleViaPrimitives) {
+    for (const obstacleCircle of this.obstacleCirclePrimitives) {
       if (
-        this.obstacleRootNames[obstacleVia.rootId] === activeRootConnectionName
+        this.obstacleRootNames[obstacleCircle.rootId] ===
+        activeRootConnectionName
       ) {
         continue
       }
       const requiredDistance =
-        obstacleVia.viaRadius +
+        obstacleCircle.radius +
         this.viaDiameter / 2 +
         this.obstacleClearanceMargin
       if (
-        (center.x - obstacleVia.center.x) ** 2 +
-          (center.y - obstacleVia.center.y) ** 2 <
+        (center.x - obstacleCircle.center.x) ** 2 +
+          (center.y - obstacleCircle.center.y) ** 2 <
         requiredDistance * requiredDistance
       ) {
         return true
@@ -1799,6 +1862,44 @@ export class HighDensitySolverB01 extends BaseSolver {
           const cellId = this.cellIdFor(region.id, row, col)
           this.cellCenterX[cellId] = (minX + maxX) / 2
           this.cellCenterY[cellId] = (minY + maxY) / 2
+          // A legal via-center interval may lie between cell midpoints, or
+          // collapse to a line when the window is exactly one via wide. Use
+          // a legal representative inside this cell whenever it intersects
+          // that interval; midpoint-only sampling would erase the passage.
+          const viaCenterMinX = Math.max(
+            minX,
+            this.boundsMinX + this.viaMinDistFromBorder,
+          )
+          const viaCenterMaxX = Math.min(
+            maxX,
+            this.boundsMaxX - this.viaMinDistFromBorder,
+          )
+          const viaCenterMinY = Math.max(
+            minY,
+            this.boundsMinY + this.viaMinDistFromBorder,
+          )
+          const viaCenterMaxY = Math.min(
+            maxY,
+            this.boundsMaxY - this.viaMinDistFromBorder,
+          )
+          if (
+            Math.min(
+              width - 2 * this.viaMinDistFromBorder,
+              height - 2 * this.viaMinDistFromBorder,
+            ) < this.highResolutionCellSize &&
+            viaCenterMinX <= viaCenterMaxX &&
+            viaCenterMinY <= viaCenterMaxY
+          ) {
+            this.usesPhysicalViaCenters = true
+            this.cellCenterX[cellId] = Math.max(
+              viaCenterMinX,
+              Math.min(viaCenterMaxX, (this.boundsMinX + this.boundsMaxX) / 2),
+            )
+            this.cellCenterY[cellId] = Math.max(
+              viaCenterMinY,
+              Math.min(viaCenterMaxY, (this.boundsMinY + this.boundsMaxY) / 2),
+            )
+          }
           this.cellMinX[cellId] = minX
           this.cellMinY[cellId] = minY
           this.cellMaxX[cellId] = maxX
@@ -2353,6 +2454,87 @@ export class HighDensitySolverB01 extends BaseSolver {
         this.pushFlatOccupants(z * this.planeSize + occCellId, activeConn, occs)
       }
     })
+    const center = applyAffineTransformToPoint(this.gridToBoundsTransform, {
+      x: cx,
+      y: cy,
+    })
+    // Occupancy cells already include a clearance halo. Their overlap is only
+    // a broad-phase query; applying another halo would count clearance twice.
+    let conflictCount = 0
+    for (const connId of occs) {
+      if (this.doesViaConflictWithConnection(center, connId)) {
+        occs[conflictCount++] = connId
+      }
+    }
+    occs.length = conflictCount
+  }
+
+  private doesViaConflictWithConnection(
+    center: Point2d,
+    connId: ConnId,
+  ): boolean {
+    const routes = this.getSolvedRoutesForConn(connId)
+    // Unrouted connections still reserve their fixed port cells.
+    if (routes.length === 0) return true
+    const traceDistance =
+      this.viaDiameter / 2 + this.traceThickness / 2 + this.traceMargin
+    const viaDistance = this.viaDiameter + this.traceMargin
+    for (const route of routes) {
+      const copper = this.getRouteCopperGeometry(route)
+      for (const via of copper.vias) {
+        if (
+          (center.x - via.x) ** 2 + (center.y - via.y) ** 2 <
+          viaDistance ** 2
+        ) {
+          return true
+        }
+      }
+      for (let index = 1; index < copper.points.length; index++) {
+        const start = copper.points[index - 1]!
+        const end = copper.points[index]!
+        if (start.z !== end.z) continue
+        if (
+          getSquaredDistanceFromPointToSegment({
+            point: center,
+            segmentStart: start,
+            segmentEnd: end,
+          }) <
+          traceDistance ** 2
+        )
+          return true
+      }
+    }
+    return false
+  }
+
+  private getRouteCopperGeometry(route: SolvedRouteInternal): {
+    points: Array<Point2d & { z: number }>
+    vias: Point2d[]
+  } {
+    const cached = this.routeCopperGeometry.get(route)
+    if (cached) return cached
+    const points = Array.from(route.states, (state) => {
+      const layer = Math.floor(state / this.planeSize)
+      const cellId = state - layer * this.planeSize
+      return {
+        ...applyAffineTransformToPoint(this.gridToBoundsTransform, {
+          x: this.cellCenterX[cellId]!,
+          y: this.cellCenterY[cellId]!,
+        }),
+        z: this.availableZ[layer]!,
+      }
+    })
+    if (points.length > 0) points[0] = { ...route.startPoint }
+    if (points.length > 1) points[points.length - 1] = { ...route.endPoint }
+    const vias = Array.from(route.viaCellIds, (cellId) =>
+      applyAffineTransformToPoint(this.gridToBoundsTransform, {
+        x: this.cellCenterX[cellId]!,
+        y: this.cellCenterY[cellId]!,
+      }),
+    )
+    const copper = { points, vias }
+    this.routeCopperGeometry.set(route, copper)
+    return copper
   }
 
   private fillTraceOccupants(
@@ -2789,6 +2971,8 @@ export class HighDensitySolverB01 extends BaseSolver {
     indices: number[],
     displacedByVias: ConnId[],
   ) {
+    this.fillViaOccupants(sourceCellId, connId)
+    for (const occupant of this._viaOccs) pushUnique(displacedByVias, occupant)
     const cx = this.cellCenterX[sourceCellId]!
     const cy = this.cellCenterY[sourceCellId]!
     this.forEachCellNearCircle(cx, cy, this.viaKeepoutRadius, (cellId) => {
@@ -2813,15 +2997,8 @@ export class HighDensitySolverB01 extends BaseSolver {
         ) {
           continue
         }
-        this.fillTraceOccupants(flatIdx, connId, this._cellOccs)
-        if (this._cellOccs.length > 0) {
-          for (let i = 0; i < this._cellOccs.length; i++) {
-            pushUnique(displacedByVias, this._cellOccs[i]!)
-          }
-          this.replaceOccupants(flatIdx, connId)
-          indices.push(flatIdx)
-          continue
-        }
+        // Distinct copper may have overlapping clearance halos. Preserve both
+        // occupants until ripTrace removes only the actual conflicting route.
         const existing = this.usedCellsFlat[flatIdx]!
         if (existing !== -1 && existing !== connId) {
           this.addSharedOccupant(flatIdx, connId)
@@ -3072,6 +3249,16 @@ export class HighDensitySolverB01 extends BaseSolver {
     }
 
     for (const obstacle of this.obstacles) {
+      if (obstacle.type === "circle") {
+        circles.push({
+          center: obstacle.center,
+          radius: obstacle.radius,
+          fill: "rgba(128,0,128,0.12)",
+          stroke: "purple",
+          label: `fixed obstacle ${obstacle.connectionName}`,
+        })
+        continue
+      }
       if (obstacle.type === "rect") {
         rects.push({
           center: obstacle.center,
@@ -3276,6 +3463,13 @@ export class HighDensitySolverB01 extends BaseSolver {
   }
 
   private computeGridToBoundsTransform(): AffineTransform {
+    // Narrow windows use representatives chosen in physical board coordinates
+    // to preserve their via-center clearance. Stretching cell centers to the
+    // bounds would move those legal via positions, especially in a clipped
+    // final grid column. Route endpoints are preserved separately in getOutput.
+    if (this.usesPhysicalViaCenters) {
+      return { a: 1, b: 0, c: 0, d: 0, e: 1, f: 0 }
+    }
     let minCenterX = Infinity
     let maxCenterX = -Infinity
     let minCenterY = Infinity
