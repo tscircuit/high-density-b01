@@ -27,9 +27,19 @@ export type HighDensityRectObstacle = {
   zLayers: number[]
 }
 
+export type HighDensityCircleObstacle = {
+  type: "circle"
+  connectionName: string
+  rootConnectionName?: string
+  center: { x: number; y: number }
+  radius: number
+  zLayers: number[]
+}
+
 export type HighDensityObstacle =
   | HighDensityRouteObstacle
   | HighDensityRectObstacle
+  | HighDensityCircleObstacle
 
 export type HighDensityObstacleDatasetSample = {
   sampleId: string
