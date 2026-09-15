@@ -1857,6 +1857,39 @@ export class HighDensitySolverB01 extends BaseSolver {
           const cellId = this.cellIdFor(region.id, row, col)
           this.cellCenterX[cellId] = (minX + maxX) / 2
           this.cellCenterY[cellId] = (minY + maxY) / 2
+          // A legal via-center interval may lie between cell midpoints, or
+          // collapse to a line when the window is exactly one via wide. Use
+          // a legal representative inside this cell whenever it intersects
+          // that interval; midpoint-only sampling would erase the passage.
+          const viaCenterMinX = Math.max(
+            minX,
+            this.boundsMinX + this.viaMinDistFromBorder,
+          )
+          const viaCenterMaxX = Math.min(
+            maxX,
+            this.boundsMaxX - this.viaMinDistFromBorder,
+          )
+          const viaCenterMinY = Math.max(
+            minY,
+            this.boundsMinY + this.viaMinDistFromBorder,
+          )
+          const viaCenterMaxY = Math.min(
+            maxY,
+            this.boundsMaxY - this.viaMinDistFromBorder,
+          )
+          if (
+            viaCenterMinX <= viaCenterMaxX &&
+            viaCenterMinY <= viaCenterMaxY
+          ) {
+            this.cellCenterX[cellId] = Math.max(
+              viaCenterMinX,
+              Math.min(viaCenterMaxX, this.cellCenterX[cellId]!),
+            )
+            this.cellCenterY[cellId] = Math.max(
+              viaCenterMinY,
+              Math.min(viaCenterMaxY, this.cellCenterY[cellId]!),
+            )
+          }
           this.cellMinX[cellId] = minX
           this.cellMinY[cellId] = minY
           this.cellMaxX[cellId] = maxX
