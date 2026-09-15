@@ -1878,16 +1878,20 @@ export class HighDensitySolverB01 extends BaseSolver {
             this.boundsMaxY - this.viaMinDistFromBorder,
           )
           if (
+            Math.min(
+              width - 2 * this.viaMinDistFromBorder,
+              height - 2 * this.viaMinDistFromBorder,
+            ) < this.highResolutionCellSize &&
             viaCenterMinX <= viaCenterMaxX &&
             viaCenterMinY <= viaCenterMaxY
           ) {
             this.cellCenterX[cellId] = Math.max(
               viaCenterMinX,
-              Math.min(viaCenterMaxX, this.cellCenterX[cellId]!),
+              Math.min(viaCenterMaxX, (this.boundsMinX + this.boundsMaxX) / 2),
             )
             this.cellCenterY[cellId] = Math.max(
               viaCenterMinY,
-              Math.min(viaCenterMaxY, this.cellCenterY[cellId]!),
+              Math.min(viaCenterMaxY, (this.boundsMinY + this.boundsMaxY) / 2),
             )
           }
           this.cellMinX[cellId] = minX

@@ -37,6 +37,24 @@ test("B01 fits a via between circular pads without replacing them with boxes", (
     viaMinDistFromBorder: 0.15,
   })
   solver.solve()
+  console.log(
+    JSON.stringify({
+      circularPadViaGap: {
+        solved: solver.solved,
+        error: solver.error,
+        viaAllowedCount: solver.viaAllowed.reduce(
+          (count, allowed) => count + allowed,
+          0,
+        ),
+        viaCenters: Array.from(solver.viaAllowed).flatMap((allowed, cellId) =>
+          allowed
+            ? [{ x: solver.cellCenterX[cellId], y: solver.cellCenterY[cellId] }]
+            : [],
+        ),
+        transform: solver.gridToBoundsTransform,
+      },
+    }),
+  )
   expect(solver.solved, solver.error ?? "No completed via route").toBe(true)
   expect(solver.failed).toBe(false)
   const routes = solver.getOutput()
