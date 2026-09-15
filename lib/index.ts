@@ -7,7 +7,7 @@ export {
   applyAffineTransformToPoint,
   computeGridToAffineTransform,
 } from "./gridToAffineTransform"
-export { defaultB01Params } from "./default-params"
+export { defaultB01Params, defaultB02Params } from "./default-params"
 export { HighDensitySolverA01 } from "./HighDensitySolverA01/HighDensitySolverA01"
 export { HighDensitySolverA02 } from "./HighDensitySolverA02/HighDensitySolverA02"
 export { HighDensitySolverA03 } from "./HighDensitySolverA03/HighDensitySolverA03"
@@ -18,6 +18,11 @@ export {
 } from "./HighDensitySolverA08/HighDensitySolverA08"
 export { HighDensitySolverA09 } from "./HighDensitySolverA09/HighDensitySolverA09"
 export { HighDensitySolverB01 } from "./HighDensitySolverB01/HighDensitySolverB01"
+export {
+  HighDensitySolverB02,
+  type HighDensitySolverB02Props,
+  type HighDensitySolverB02Stats,
+} from "./HighDensitySolverB02/HighDensitySolverB02"
 export * from "./obstacle-dataset-types"
 export * from "./routeGeometryValidation"
 export * from "./types"
