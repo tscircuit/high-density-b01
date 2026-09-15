@@ -49,7 +49,29 @@ test("B02 repairs Bug 101's cross-layer cmn133 node", () => {
     maxY: node.center.y + node.height / 2,
   }
 
-  expect(first.solved).toBeTrue()
+  console.log(
+    JSON.stringify({
+      error: first.error,
+      stats: first.stats,
+      initialError: first.initialSolver?.error,
+      repairError: first.repairSolver?.error,
+      initialViolations: findRouteGeometryViolations(
+        (first.initialSolver?.getOutput() ?? []).map((route) => ({
+          ...route,
+          traceThickness: route.traceThickness + 0.1,
+          viaDiameter: route.viaDiameter + 0.1,
+        })),
+      ),
+      repairViolations: findRouteGeometryViolations(
+        (first.repairSolver?.getOutput() ?? []).map((route) => ({
+          ...route,
+          traceThickness: route.traceThickness + 0.1,
+          viaDiameter: route.viaDiameter + 0.1,
+        })),
+      ),
+    }),
+  )
+  expect(first.solved, first.error ?? "No completed route").toBeTrue()
   expect(first.failed).toBeFalse()
   expect(firstRoutes).toHaveLength(9)
   expect(second.getOutput()).toEqual(firstRoutes)
