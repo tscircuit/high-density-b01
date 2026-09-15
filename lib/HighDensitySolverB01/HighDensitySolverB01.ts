@@ -710,6 +710,7 @@ export class HighDensitySolverB01 extends BaseSolver {
   cellRow!: Int32Array
   cellCol!: Int32Array
   viaAllowed!: Uint8Array
+  private usesPhysicalViaCenters = false
   neighborOffset!: Int32Array
   neighborIds!: Int32Array
   neighborCosts!: Float32Array
@@ -1885,6 +1886,7 @@ export class HighDensitySolverB01 extends BaseSolver {
             viaCenterMinX <= viaCenterMaxX &&
             viaCenterMinY <= viaCenterMaxY
           ) {
+            this.usesPhysicalViaCenters = true
             this.cellCenterX[cellId] = Math.max(
               viaCenterMinX,
               Math.min(viaCenterMaxX, (this.boundsMinX + this.boundsMaxX) / 2),
@@ -3381,6 +3383,13 @@ export class HighDensitySolverB01 extends BaseSolver {
   }
 
   private computeGridToBoundsTransform(): AffineTransform {
+    // Narrow windows use representatives chosen in physical board coordinates
+    // to preserve their via-center clearance. Stretching cell centers to the
+    // bounds would move those legal via positions, especially in a clipped
+    // final grid column. Route endpoints are preserved separately in getOutput.
+    if (this.usesPhysicalViaCenters) {
+      return { a: 1, b: 0, c: 0, d: 0, e: 1, f: 0 }
+    }
     let minCenterX = Infinity
     let maxCenterX = -Infinity
     let minCenterY = Infinity
