@@ -2116,10 +2116,14 @@ export class HighDensitySolverB01 extends BaseSolver {
     const endCellId = seg.endCellId
     const neighborStart = this.neighborOffset[cellId]!
     const neighborEnd = this.neighborOffset[cellId + 1]!
+    const canSkipVisitedMove = this.canSkipVisitedMove()
 
     for (let i = neighborStart; i < neighborEnd; i++) {
       const neighborCellId = this.neighborIds[i]!
       const nextFlatIdx = z * this.planeSize + neighborCellId
+      // Native state IDs ignore rip count. The original loop discards these
+      // moves after cost preparation, so avoid their geometry and unused rips.
+      if (canSkipVisitedMove && visited[nextFlatIdx] === stamp) continue
 
       this.computeMoveCostAndRips(
         activeConn,
@@ -2168,6 +2172,7 @@ export class HighDensitySolverB01 extends BaseSolver {
       for (let nz = 0; nz < this.layers; nz++) {
         if (nz === z) continue
         const nextFlatIdx = nz * this.planeSize + cellId
+        if (canSkipVisitedMove && visited[nextFlatIdx] === stamp) continue
 
         this.computeMoveCostAndRips(
           activeConn,
@@ -2212,6 +2217,73 @@ export class HighDensitySolverB01 extends BaseSolver {
         this.heap.push(f2, this.seqCounter++, newNodeIdx)
       }
     }
+  }
+
+  private canSkipVisitedMove(): boolean {
+    for (const [name, method] of nativeVisitedMoveMethods) {
+      if (getDataPropertyValue(this, name) !== method) return false
+    }
+    if (
+      getDataPropertyValue(this.ripChain, "contains") !==
+        nativeRipChainContains ||
+      getDataPropertyValue(this.ripChain, "append") !== nativeRipChainAppend
+    ) {
+      return false
+    }
+    // Cost hooks may be installed on the public settings object or container.
+    // Inspect data descriptors without invoking their accessors.
+    const settingsDescriptor = Object.getOwnPropertyDescriptor(
+      this,
+      "hyperParameters",
+    )
+    const settings = settingsDescriptor?.value
+    if (!settings || typeof settings !== "object") return false
+    for (const name of nativeMoveCostSettings) {
+      const descriptor = Object.getOwnPropertyDescriptor(settings, name)
+      if (!descriptor || typeof descriptor.value !== "number") return false
+    }
+    for (const name of nativeMoveGeometrySettings) {
+      const descriptor = Object.getOwnPropertyDescriptor(this, name)
+      if (!descriptor || typeof descriptor.value !== "number") return false
+    }
+    const transformDescriptor = Object.getOwnPropertyDescriptor(
+      this,
+      "gridToBoundsTransform",
+    )
+    const transform = transformDescriptor?.value
+    if (!transform || typeof transform !== "object") return false
+    for (const name of nativeTransformFields) {
+      const descriptor = Object.getOwnPropertyDescriptor(transform, name)
+      if (!descriptor || typeof descriptor.value !== "number") return false
+    }
+    for (const name of nativeCoordinateArrays) {
+      const coordinates = Object.getOwnPropertyDescriptor(this, name)?.value
+      if (
+        !ArrayBuffer.isView(coordinates) ||
+        Object.getPrototypeOf(coordinates) !== nativeCoordinatePrototype
+      ) {
+        return false
+      }
+    }
+    const regions = Object.getOwnPropertyDescriptor(this, "regions")?.value
+    if (
+      !Array.isArray(regions) ||
+      Object.getPrototypeOf(regions) !== nativeRegionArrayPrototype ||
+      Object.getOwnPropertyDescriptor(regions, "length")?.value !== 5
+    ) {
+      return false
+    }
+    // Setup creates five fixed grid regions. Check that bounded data shape,
+    // retaining the original loop for custom public geometry accessors.
+    for (let index = 0; index < 5; index++) {
+      const region = Object.getOwnPropertyDescriptor(regions, index)?.value
+      if (!region || typeof region !== "object") return false
+      for (const name of nativeRegionFields) {
+        const descriptor = Object.getOwnPropertyDescriptor(region, name)
+        if (!descriptor || typeof descriptor.value !== "number") return false
+      }
+    }
+    return true
   }
 
   private computeMoveCostAndRips(
@@ -3309,5 +3381,92 @@ export class HighDensitySolverB01 extends BaseSolver {
     return { a, b: 0, c, d: 0, e, f }
   }
 }
+
+function getDataPropertyValue(owner: object, name: string): unknown {
+  let current: object | null = owner
+  while (current) {
+    const descriptor = Object.getOwnPropertyDescriptor(current, name)
+    if (descriptor) return descriptor.value
+    current = Object.getPrototypeOf(current)
+  }
+  return undefined
+}
+
+const nativeVisitedMoveMethods = [
+  ["getSearchStateIdx", HighDensitySolverB01.prototype["getSearchStateIdx"]],
+  [
+    "computeMoveCostAndRips",
+    HighDensitySolverB01.prototype["computeMoveCostAndRips"],
+  ],
+  [
+    "isBlockedByObstacleRoots",
+    HighDensitySolverB01.prototype["isBlockedByObstacleRoots"],
+  ],
+  [
+    "isLateralMoveBlockedByObstacleGeometry",
+    HighDensitySolverB01.prototype["isLateralMoveBlockedByObstacleGeometry"],
+  ],
+  [
+    "isViaMoveBlockedByObstacleGeometry",
+    HighDensitySolverB01.prototype["isViaMoveBlockedByObstacleGeometry"],
+  ],
+  [
+    "hasSameRootObstacle",
+    HighDensitySolverB01.prototype["hasSameRootObstacle"],
+  ],
+  ["allowSharedUse", HighDensitySolverB01.prototype["allowSharedUse"]],
+  ["fillViaOccupants", HighDensitySolverB01.prototype["fillViaOccupants"]],
+  ["fillTraceOccupants", HighDensitySolverB01.prototype["fillTraceOccupants"]],
+  ["pushFlatOccupants", HighDensitySolverB01.prototype["pushFlatOccupants"]],
+  [
+    "forEachCellNearCircle",
+    HighDensitySolverB01.prototype["forEachCellNearCircle"],
+  ],
+  ["cellIdFor", HighDensitySolverB01.prototype["cellIdFor"]],
+] as const
+const nativeRipChainContains = TypedRipChain.prototype.contains
+const nativeRipChainAppend = TypedRipChain.prototype.append
+const nativeMoveCostSettings = [
+  "viaBaseCost",
+  "ripCost",
+  "ripViaPenalty",
+  "ripTracePenalty",
+  "sameRootObstacleCostMultiplier",
+] as const
+
+const nativeMoveGeometrySettings = [
+  "traceThickness",
+  "viaDiameter",
+  "obstacleClearanceMargin",
+  "layers",
+  "planeSize",
+  "boundsMinX",
+  "boundsMinY",
+  "highResolutionCellSize",
+  "fineCols",
+  "fineRows",
+] as const
+const nativeTransformFields = ["a", "b", "c", "d", "e", "f"] as const
+const nativeCoordinateArrays = [
+  "cellCenterX",
+  "cellCenterY",
+  "cellMinX",
+  "cellMinY",
+  "cellMaxX",
+  "cellMaxY",
+] as const
+const nativeCoordinatePrototype = Float64Array.prototype
+const nativeRegionArrayPrototype = Array.prototype
+const nativeRegionFields = [
+  "id",
+  "fineOriginRow",
+  "fineOriginCol",
+  "fineRows",
+  "fineCols",
+  "cellScale",
+  "rows",
+  "cols",
+  "offset",
+] as const
 
 export { HighDensitySolverB01 as HighDensityB01Solver }
