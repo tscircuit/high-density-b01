@@ -242,13 +242,166 @@ test("B01 skips visited geometry with exact routing and dispatch", () => {
     "geometry",
     "rip-setting",
     "settings-container",
+    "state-getter",
+    "prototype-cost-getter",
+    "geometry-setting",
+    "transform-container",
+    "transform-component",
+    "coordinates-container",
+    "coordinates-index",
+    "grid-scalar",
+    "regions-container",
+    "region-slot",
+    "region-component",
   ] as const) {
     const props = createProps(1, [0, 1])
     const actual = new HighDensitySolverB01(structuredClone(props))
     const reference = new FrozenB01VisitedSolver(structuredClone(props))
+    if (
+      customization.startsWith("transform") ||
+      customization.startsWith("coordinates") ||
+      customization.startsWith("region") ||
+      customization === "grid-scalar"
+    ) {
+      actual.setup()
+      reference.setup()
+      comparePublicStep(actual, reference)
+    }
     const calls = [0, 0]
+    const reads: string[][] = [[], []]
+    const undo: Array<() => void> = []
     for (const [index, solver] of [actual, reference].entries()) {
-      if (customization === "settings-container") {
+      if (customization === "state-getter") {
+        const stateIndex = solver["getSearchStateIdx"]
+        Object.defineProperty(solver, "getSearchStateIdx", {
+          get(): typeof stateIndex {
+            calls[index] = calls[index]! + 1
+            reads[index]!.push("state-index")
+            return stateIndex
+          },
+        })
+      } else if (customization === "prototype-cost-getter") {
+        if (index === 1) continue
+        const prototype = Object.getPrototypeOf(solver)
+        const original = solver["computeMoveCostAndRips"]
+        const descriptor = Object.getOwnPropertyDescriptor(
+          prototype,
+          "computeMoveCostAndRips",
+        )
+        Object.defineProperty(prototype, "computeMoveCostAndRips", {
+          configurable: true,
+          get(): typeof original {
+            // The shared base prototype is also inherited by the frozen class.
+            const ownerIndex = this === actual ? 0 : 1
+            calls[ownerIndex] = calls[ownerIndex]! + 1
+            reads[ownerIndex]!.push("move-cost")
+            return original
+          },
+        })
+        undo.push((): void => {
+          if (descriptor) {
+            Object.defineProperty(
+              prototype,
+              "computeMoveCostAndRips",
+              descriptor,
+            )
+          } else {
+            Reflect.deleteProperty(prototype, "computeMoveCostAndRips")
+          }
+        })
+      } else if (customization === "geometry-setting") {
+        for (const name of [
+          "obstacleClearanceMargin",
+          "traceThickness",
+          "viaDiameter",
+        ] as const) {
+          const value = solver[name]
+          Object.defineProperty(solver, name, {
+            get(): number {
+              calls[index] = calls[index]! + 1
+              reads[index]!.push(name)
+              // Accepted moves must see the same stateful sequence after any
+              // already-visited moves that also read the public geometry.
+              return value + (calls[index]! % 3) * 0.000125
+            },
+          })
+        }
+      } else if (customization === "transform-container") {
+        const transform = solver.gridToBoundsTransform
+        Object.defineProperty(solver, "gridToBoundsTransform", {
+          get(): typeof transform {
+            calls[index] = calls[index]! + 1
+            reads[index]!.push("transform")
+            return transform
+          },
+        })
+      } else if (customization === "transform-component") {
+        const value = solver.gridToBoundsTransform.a
+        Object.defineProperty(solver.gridToBoundsTransform, "a", {
+          get(): number {
+            calls[index] = calls[index]! + 1
+            reads[index]!.push("transform-a")
+            return value + (calls[index]! % 3) * 0.000000001
+          },
+        })
+      } else if (customization === "coordinates-container") {
+        const coordinates = solver.cellCenterX
+        Object.defineProperty(solver, "cellCenterX", {
+          get(): typeof coordinates {
+            calls[index] = calls[index]! + 1
+            reads[index]!.push("coordinates")
+            return coordinates
+          },
+        })
+      } else if (customization === "coordinates-index") {
+        const coordinates = Array.from(solver.cellCenterX)
+        const cellId = solver["unsolvedSegs"][0]!.startCellId
+        const value = coordinates[cellId]!
+        Object.defineProperty(coordinates, cellId, {
+          get(): number {
+            calls[index] = calls[index]! + 1
+            reads[index]!.push("coordinate-x")
+            return value
+          },
+        })
+        Object.defineProperty(solver, "cellCenterX", { value: coordinates })
+      } else if (customization === "grid-scalar") {
+        const layers = solver.layers
+        Object.defineProperty(solver, "layers", {
+          get(): number {
+            calls[index] = calls[index]! + 1
+            reads[index]!.push("layers")
+            return layers
+          },
+        })
+      } else if (customization === "regions-container") {
+        const regions = solver.regions
+        Object.defineProperty(solver, "regions", {
+          get(): typeof regions {
+            calls[index] = calls[index]! + 1
+            reads[index]!.push("regions")
+            return regions
+          },
+        })
+      } else if (customization === "region-slot") {
+        const region = solver.regions[0]!
+        Object.defineProperty(solver.regions, 0, {
+          get(): typeof region {
+            calls[index] = calls[index]! + 1
+            reads[index]!.push("region-0")
+            return region
+          },
+        })
+      } else if (customization === "region-component") {
+        const rows = solver.regions[0]!.rows
+        Object.defineProperty(solver.regions[0]!, "rows", {
+          get(): number {
+            calls[index] = calls[index]! + 1
+            reads[index]!.push("region-rows")
+            return rows
+          },
+        })
+      } else if (customization === "settings-container") {
         const settings = solver.hyperParameters
         Object.defineProperty(solver, "hyperParameters", {
           get(): typeof settings {
@@ -283,15 +436,20 @@ test("B01 skips visited geometry with exact routing and dispatch", () => {
         })
       }
     }
-    while (!reference.solved && !reference.failed) {
-      if (reference.iterations > 20_000) {
-        throw new Error("Unbounded custom fixture")
+    try {
+      while (!reference.solved && !reference.failed) {
+        if (reference.iterations > 20_000) {
+          throw new Error("Unbounded custom fixture")
+        }
+        actual.step()
+        reference.step()
+        comparePublicStep(actual, reference)
+        expect(calls[0]).toBe(calls[1])
+        expect(reads[0]).toEqual(reads[1])
       }
-      actual.step()
-      reference.step()
-      comparePublicStep(actual, reference)
-      expect(calls[0]).toBe(calls[1])
+      expect(calls[0]).toBeGreaterThan(0)
+    } finally {
+      for (const restore of undo.reverse()) restore()
     }
-    expect(calls[0]).toBeGreaterThan(0)
   }
 })
