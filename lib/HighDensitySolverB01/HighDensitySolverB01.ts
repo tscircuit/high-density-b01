@@ -2116,10 +2116,14 @@ export class HighDensitySolverB01 extends BaseSolver {
     const endCellId = seg.endCellId
     const neighborStart = this.neighborOffset[cellId]!
     const neighborEnd = this.neighborOffset[cellId + 1]!
+    const canSkipVisitedMove = this.canSkipVisitedMove()
 
     for (let i = neighborStart; i < neighborEnd; i++) {
       const neighborCellId = this.neighborIds[i]!
       const nextFlatIdx = z * this.planeSize + neighborCellId
+      // Native state IDs ignore rip count. The original loop discards these
+      // moves after cost preparation, so avoid their geometry and unused rips.
+      if (canSkipVisitedMove && visited[nextFlatIdx] === stamp) continue
 
       this.computeMoveCostAndRips(
         activeConn,
@@ -2168,6 +2172,7 @@ export class HighDensitySolverB01 extends BaseSolver {
       for (let nz = 0; nz < this.layers; nz++) {
         if (nz === z) continue
         const nextFlatIdx = nz * this.planeSize + cellId
+        if (canSkipVisitedMove && visited[nextFlatIdx] === stamp) continue
 
         this.computeMoveCostAndRips(
           activeConn,
@@ -2212,6 +2217,31 @@ export class HighDensitySolverB01 extends BaseSolver {
         this.heap.push(f2, this.seqCounter++, newNodeIdx)
       }
     }
+  }
+
+  private canSkipVisitedMove(): boolean {
+    for (const [name, method] of nativeVisitedMoveMethods) {
+      if (this[name] !== method) return false
+    }
+    if (
+      this.ripChain.contains !== nativeRipChainContains ||
+      this.ripChain.append !== nativeRipChainAppend
+    ) {
+      return false
+    }
+    // Cost hooks may be installed on the public settings object or container.
+    // Inspect data descriptors without invoking their accessors.
+    const settingsDescriptor = Object.getOwnPropertyDescriptor(
+      this,
+      "hyperParameters",
+    )
+    const settings = settingsDescriptor?.value
+    if (!settings || typeof settings !== "object") return false
+    for (const name of nativeMoveCostSettings) {
+      const descriptor = Object.getOwnPropertyDescriptor(settings, name)
+      if (!descriptor || typeof descriptor.value !== "number") return false
+    }
+    return true
   }
 
   private computeMoveCostAndRips(
@@ -3309,5 +3339,47 @@ export class HighDensitySolverB01 extends BaseSolver {
     return { a, b: 0, c, d: 0, e, f }
   }
 }
+
+const nativeVisitedMoveMethods = [
+  ["getSearchStateIdx", HighDensitySolverB01.prototype["getSearchStateIdx"]],
+  [
+    "computeMoveCostAndRips",
+    HighDensitySolverB01.prototype["computeMoveCostAndRips"],
+  ],
+  [
+    "isBlockedByObstacleRoots",
+    HighDensitySolverB01.prototype["isBlockedByObstacleRoots"],
+  ],
+  [
+    "isLateralMoveBlockedByObstacleGeometry",
+    HighDensitySolverB01.prototype["isLateralMoveBlockedByObstacleGeometry"],
+  ],
+  [
+    "isViaMoveBlockedByObstacleGeometry",
+    HighDensitySolverB01.prototype["isViaMoveBlockedByObstacleGeometry"],
+  ],
+  [
+    "hasSameRootObstacle",
+    HighDensitySolverB01.prototype["hasSameRootObstacle"],
+  ],
+  ["allowSharedUse", HighDensitySolverB01.prototype["allowSharedUse"]],
+  ["fillViaOccupants", HighDensitySolverB01.prototype["fillViaOccupants"]],
+  ["fillTraceOccupants", HighDensitySolverB01.prototype["fillTraceOccupants"]],
+  ["pushFlatOccupants", HighDensitySolverB01.prototype["pushFlatOccupants"]],
+  [
+    "forEachCellNearCircle",
+    HighDensitySolverB01.prototype["forEachCellNearCircle"],
+  ],
+  ["cellIdFor", HighDensitySolverB01.prototype["cellIdFor"]],
+] as const
+const nativeRipChainContains = TypedRipChain.prototype.contains
+const nativeRipChainAppend = TypedRipChain.prototype.append
+const nativeMoveCostSettings = [
+  "viaBaseCost",
+  "ripCost",
+  "ripViaPenalty",
+  "ripTracePenalty",
+  "sameRootObstacleCostMultiplier",
+] as const
 
 export { HighDensitySolverB01 as HighDensityB01Solver }
