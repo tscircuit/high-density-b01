@@ -211,4 +211,3 @@ function frozenStepOnce(this: HighDensitySolverB01): void {
     }
   }
 }
-
