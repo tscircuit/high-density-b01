@@ -2770,11 +2770,9 @@ export class HighDensitySolverB01 extends BaseSolver {
         return
       }
       const existing = this.usedCellsFlat[flatIdx]!
-      const allowSameRootOverlap = this.allowSharedUse(connId, existing)
-      if (existing !== -1 && existing !== connId && !allowSameRootOverlap) {
-        return
-      }
       if (existing !== -1 && existing !== connId) {
+        // Clearance footprints can overlap even when foreign copper is clear.
+        // Retain each owner so ripping one does not erase another's clearance.
         this.addSharedOccupant(flatIdx, connId)
       } else {
         this.usedCellsFlat[flatIdx] = connId
