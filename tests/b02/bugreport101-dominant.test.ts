@@ -37,7 +37,7 @@ const createSolver = (): HighDensitySolverB02 => {
   return solver
 }
 
-test("B02 repairs Bug 101's dominant high-density node", async () => {
+test("B02 completes Bug 101's dominant high-density node", async () => {
   const first = createSolver()
   const second = createSolver()
   const firstRoutes = first.getOutput()
@@ -70,10 +70,10 @@ test("B02 repairs Bug 101's dominant high-density node", async () => {
   expect(findRouteGeometryViolations(clearanceInflatedRoutes)).toHaveLength(0)
   expect(first.stats).toMatchObject({
     applicable: true,
-    initialRouteCount: 10,
-    missingPairCount: 1,
-    blockerRouteCount: 2,
-    repairPairCount: 3,
+    initialRouteCount: 11,
+    missingPairCount: 0,
+    blockerRouteCount: 0,
+    repairPairCount: 0,
   })
   expect(first.stats.initialIterations).toBeLessThanOrEqual(600)
   expect(first.stats.repairIterations).toBeLessThanOrEqual(200)

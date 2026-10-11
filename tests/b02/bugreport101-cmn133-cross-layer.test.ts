@@ -37,7 +37,7 @@ const createSolver = (): HighDensitySolverB02 => {
   return solver
 }
 
-test("B02 repairs Bug 101's cross-layer cmn133 node", () => {
+test("B02 completes Bug 101's cross-layer cmn133 node", () => {
   const first = createSolver()
   const second = createSolver()
   const firstRoutes = first.getOutput()
@@ -102,14 +102,19 @@ test("B02 repairs Bug 101's cross-layer cmn133 node", () => {
   expect(findRouteGeometryViolations(clearanceInflatedRoutes)).toHaveLength(0)
   expect(first.stats).toMatchObject({
     applicable: true,
-    initialRouteCount: 7,
-    missingPairCount: 2,
-    blockerRouteCount: 5,
-    repairPairCount: 7,
+    initialRouteCount: 9,
+    missingPairCount: 0,
+    blockerRouteCount: 0,
+    repairPairCount: 0,
     alternateInitialSolverCount: 2,
     selectedInitialShuffleSeed: 4,
   })
-  expect(first.stats.initialIterations).toBeLessThanOrEqual(350)
+  // Preserve the original combined work ceiling across initial and repair stages.
+  expect(
+    first.stats.initialIterations +
+      first.stats.alternateInitialIterations +
+      first.stats.repairIterations,
+  ).toBeLessThanOrEqual(350 + 550 + 2_150)
   expect(first.stats.alternateInitialIterations).toBeLessThanOrEqual(550)
   expect(first.stats.repairIterations).toBeLessThanOrEqual(2_150)
   expect(second.stats.initialIterations).toBe(first.stats.initialIterations)

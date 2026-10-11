@@ -38,12 +38,7 @@ const pointToSegmentDistance = (
 const orientation = (a: Point, b: Point, c: Point): number =>
   (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x)
 
-const segmentDistance = (
-  a: Point,
-  b: Point,
-  c: Point,
-  d: Point,
-): number => {
+const segmentDistance = (a: Point, b: Point, c: Point, d: Point): number => {
   if (
     orientation(a, b, c) * orientation(a, b, d) < 0 &&
     orientation(c, d, a) * orientation(c, d, b) < 0
