@@ -82,6 +82,11 @@ interface SolvedRouteInternal {
   connectionAliases: ConnectionAlias[]
 }
 
+interface SolvedRouteCopper {
+  segments: Array<{ start: Point2d; end: Point2d }>
+  vias: Point2d[]
+}
+
 interface HyperParameters {
   shuffleSeed: number
   ripCost: number
@@ -733,6 +738,10 @@ export class HighDensitySolverB01 extends BaseSolver {
   private usedIndicesByConn!: Array<number[] | undefined>
   private unsolvedSegs!: ConnectionSeg[]
   private solvedRoutes!: Array<SolvedRouteInternal[] | undefined>
+  private solvedRouteCopper = new WeakMap<
+    SolvedRouteInternal,
+    SolvedRouteCopper
+  >()
 
   private activeConnSeg: ConnectionSeg | null = null
   private activeConnId: ConnId = -1
@@ -2353,6 +2362,108 @@ export class HighDensitySolverB01 extends BaseSolver {
         this.pushFlatOccupants(z * this.planeSize + occCellId, activeConn, occs)
       }
     })
+
+    const center = applyAffineTransformToPoint(this.gridToBoundsTransform, {
+      x: cx,
+      y: cy,
+    })
+    let count = 0
+    for (let i = 0; i < occs.length; i++) {
+      const owner = occs[i]!
+      if (this.doesViaIntersectSolvedCopper(center, owner)) {
+        occs[count++] = owner
+      }
+    }
+    occs.length = count
+  }
+
+  private doesViaIntersectSolvedCopper(
+    center: Point2d,
+    owner: ConnId,
+  ): boolean {
+    const routes = this.getSolvedRoutesForConn(owner)
+    if (routes.length === 0) {
+      throw new Error(`Via footprint owner ${owner} has no live solved copper`)
+    }
+    const traceDistance =
+      this.viaDiameter / 2 + this.traceThickness / 2 + this.traceMargin + 1e-9
+    const viaDistance = this.viaDiameter + this.traceMargin + 1e-9
+    for (const route of routes) {
+      const copper = this.getSolvedRouteCopper(route)
+      for (const segment of copper.segments) {
+        if (
+          getSquaredDistanceFromPointToSegment({
+            point: center,
+            segmentStart: segment.start,
+            segmentEnd: segment.end,
+          }) <=
+          traceDistance * traceDistance
+        ) {
+          return true
+        }
+      }
+      for (const via of copper.vias) {
+        const dx = center.x - via.x
+        const dy = center.y - via.y
+        if (dx * dx + dy * dy <= viaDistance * viaDistance) return true
+      }
+    }
+    return false
+  }
+
+  private getSolvedRouteCopper(route: SolvedRouteInternal): SolvedRouteCopper {
+    const cached = this.solvedRouteCopper.get(route)
+    if (cached) return cached
+    const points = Array.from(route.states, (state) => {
+      const layer = Math.floor(state / this.planeSize)
+      const cellId = state - layer * this.planeSize
+      return {
+        ...applyAffineTransformToPoint(this.gridToBoundsTransform, {
+          x: this.cellCenterX[cellId]!,
+          y: this.cellCenterY[cellId]!,
+        }),
+        z: this.layerToZ.get(layer) ?? layer,
+      }
+    })
+    if (points.length === 0) {
+      throw new Error("Live solved copper has no route states")
+    }
+    const copper: SolvedRouteCopper = {
+      segments: [],
+      vias: Array.from(route.viaCellIds, (cellId) =>
+        applyAffineTransformToPoint(this.gridToBoundsTransform, {
+          x: this.cellCenterX[cellId]!,
+          y: this.cellCenterY[cellId]!,
+        }),
+      ),
+    }
+    // Match getOutput's exact contacts for every alias, including reversed ones.
+    for (const alias of route.connectionAliases) {
+      const aliasPoints = alias.reversedFromCanonical
+        ? [...points].reverse()
+        : [...points]
+      aliasPoints[0] = { ...alias.startPoint }
+      if (aliasPoints.length > 1) {
+        aliasPoints[aliasPoints.length - 1] = { ...alias.endPoint }
+      }
+      for (let i = 0; i < aliasPoints.length; i++) {
+        const point = aliasPoints[i]!
+        if (
+          aliasPoints[i - 1]?.z !== point.z &&
+          aliasPoints[i + 1]?.z !== point.z
+        ) {
+          copper.segments.push({ start: point, end: point })
+        }
+      }
+      for (let i = 1; i < aliasPoints.length; i++) {
+        const start = aliasPoints[i - 1]!
+        const end = aliasPoints[i]!
+        if (start.z === end.z) copper.segments.push({ start, end })
+      }
+    }
+    // Internal route objects are immutable; ripping drops their live reference.
+    this.solvedRouteCopper.set(route, copper)
+    return copper
   }
 
   private fillTraceOccupants(
@@ -2397,11 +2508,6 @@ export class HighDensitySolverB01 extends BaseSolver {
       this.sharedCellsFlat[flatIdx] = sharedOccs
     }
     pushUnique(sharedOccs, connId)
-  }
-
-  private replaceOccupants(flatIdx: number, connId: ConnId): void {
-    this.usedCellsFlat[flatIdx] = connId
-    this.sharedCellsFlat[flatIdx] = undefined
   }
 
   private removeOccupant(flatIdx: number, connId: ConnId): void {
@@ -2679,9 +2785,8 @@ export class HighDensitySolverB01 extends BaseSolver {
       this.markTraceFootprint(connId, z, cellId, indices)
     }
 
-    const displacedByVias: ConnId[] = []
     for (let i = 0; i < viaCellIds.length; i++) {
-      this.markViaFootprint(connId, viaCellIds[i]!, indices, displacedByVias)
+      this.markViaFootprint(connId, viaCellIds[i]!, indices)
     }
 
     while (this.usedIndicesByConn.length <= connId) {
@@ -2704,12 +2809,7 @@ export class HighDensitySolverB01 extends BaseSolver {
     })
     this.solvedRoutes[connId] = solvedRoutes
 
-    for (let i = 0; i < displacedByVias.length; i++) {
-      this.ripTrace(displacedByVias[i]!)
-      if (this.failed) return
-    }
-
-    if (this._rippedIds.length > 0 || displacedByVias.length > 0) {
+    if (this._rippedIds.length > 0) {
       const pen = this.penalty2d
       const cap = this.penaltyCap
       if (this.totalRipEvents > 50) {
@@ -2770,11 +2870,9 @@ export class HighDensitySolverB01 extends BaseSolver {
         return
       }
       const existing = this.usedCellsFlat[flatIdx]!
-      const allowSameRootOverlap = this.allowSharedUse(connId, existing)
-      if (existing !== -1 && existing !== connId && !allowSameRootOverlap) {
-        return
-      }
       if (existing !== -1 && existing !== connId) {
+        // Clearance footprints can overlap even when foreign copper is clear.
+        // Retain each owner so ripping one does not erase another's clearance.
         this.addSharedOccupant(flatIdx, connId)
       } else {
         this.usedCellsFlat[flatIdx] = connId
@@ -2787,7 +2885,6 @@ export class HighDensitySolverB01 extends BaseSolver {
     connId: ConnId,
     sourceCellId: number,
     indices: number[],
-    displacedByVias: ConnId[],
   ) {
     const cx = this.cellCenterX[sourceCellId]!
     const cy = this.cellCenterY[sourceCellId]!
@@ -2813,17 +2910,9 @@ export class HighDensitySolverB01 extends BaseSolver {
         ) {
           continue
         }
-        this.fillTraceOccupants(flatIdx, connId, this._cellOccs)
-        if (this._cellOccs.length > 0) {
-          for (let i = 0; i < this._cellOccs.length; i++) {
-            pushUnique(displacedByVias, this._cellOccs[i]!)
-          }
-          this.replaceOccupants(flatIdx, connId)
-          indices.push(flatIdx)
-          continue
-        }
         const existing = this.usedCellsFlat[flatIdx]!
         if (existing !== -1 && existing !== connId) {
+          // Search already ripped real blockers; overlapping halos keep owners.
           this.addSharedOccupant(flatIdx, connId)
         } else {
           this.usedCellsFlat[flatIdx] = connId
