@@ -2411,9 +2411,7 @@ export class HighDensitySolverB01 extends BaseSolver {
     return false
   }
 
-  private getSolvedRouteCopper(
-    route: SolvedRouteInternal,
-  ): SolvedRouteCopper {
+  private getSolvedRouteCopper(route: SolvedRouteInternal): SolvedRouteCopper {
     const cached = this.solvedRouteCopper.get(route)
     if (cached) return cached
     const points = Array.from(route.states, (state) => {
