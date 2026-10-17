@@ -948,8 +948,11 @@ export class HighDensitySolverB01 extends BaseSolver {
     this.boundsMinY = center.y - height / 2
     this.boundsMaxY = center.y + height / 2
 
-    this.traceKeepoutRadius = this.traceMargin + this.traceThickness / 2
-    this.viaKeepoutRadius = this.viaDiameter / 2 + this.traceKeepoutRadius
+    this.traceKeepoutRadius =
+      this.traceMargin +
+      this.traceThickness / (this.useExactPortCoordinates ? 1 : 2)
+    this.viaKeepoutRadius =
+      this.viaDiameter / 2 + this.traceThickness / 2 + this.traceMargin
 
     this.buildFiveRegionGrid(width, height)
     this.gridToBoundsTransform = this.computeGridToBoundsTransform()
@@ -2474,6 +2477,19 @@ export class HighDensitySolverB01 extends BaseSolver {
       const occs = this._viaOccs
       for (let i = 0; i < occs.length; i++) {
         const occ = occs[i]!
+        if (
+          this.useExactPortCoordinates &&
+          !this.doesMoveConflictWithRouteCopper(
+            occ,
+            toZ,
+            fromCellId,
+            toCellId,
+            true,
+            fromZ!,
+          )
+        ) {
+          continue
+        }
         if (!this.ripChain.contains(head, occ)) {
           cost += this.hyperParameters.ripCost
           head = this.ripChain.append(head, occ)
@@ -2503,6 +2519,19 @@ export class HighDensitySolverB01 extends BaseSolver {
       this.fillTraceOccupants(toFlatIdx, activeConn, this._cellOccs)
       for (let i = 0; i < this._cellOccs.length; i++) {
         const occ = this._cellOccs[i]!
+        if (
+          this.useExactPortCoordinates &&
+          !this.doesMoveConflictWithRouteCopper(
+            occ,
+            toZ,
+            fromCellId,
+            toCellId,
+            false,
+            toZ,
+          )
+        ) {
+          continue
+        }
         if (!this.ripChain.contains(head, occ)) {
           cost += this.hyperParameters.ripCost
           head = this.ripChain.append(head, occ)
@@ -2518,6 +2547,82 @@ export class HighDensitySolverB01 extends BaseSolver {
     this._moveCost = cost
     this._moveRippedHead = head
     this._moveRipCount = ripCount
+  }
+
+  private doesMoveConflictWithRouteCopper(
+    owner: ConnId,
+    toLayer: number,
+    fromCell: number,
+    toCell: number,
+    isVia: boolean,
+    fromLayer: number,
+  ): boolean {
+    const active = this.activeConnSeg
+    const start =
+      !isVia && active &&
+      fromLayer === active.startZ && fromCell === active.startCellId
+        ? active.startPoint
+        : { x: this.cellCenterX[fromCell]!, y: this.cellCenterY[fromCell]! }
+    const end =
+      !isVia && active &&
+      toLayer === active.endZ && toCell === active.endCellId
+        ? active.endPoint
+        : { x: this.cellCenterX[toCell]!, y: this.cellCenterY[toCell]! }
+    const candidateMinZ =
+      isVia && !this.allowBlindAndBuriedVias
+        ? Math.min(...this.availableZ)
+        : Math.min(this.availableZ[fromLayer]!, this.availableZ[toLayer]!)
+    const candidateMaxZ =
+      isVia && !this.allowBlindAndBuriedVias
+        ? Math.max(...this.availableZ)
+        : Math.max(this.availableZ[fromLayer]!, this.availableZ[toLayer]!)
+    for (const route of this.getSolvedRoutesForConn(owner)) {
+      for (let index = 1; index < route.states.length; index++) {
+        const from = route.states[index - 1]!
+        const to = route.states[index]!
+        const fromZ = this.availableZ[Math.floor(from / this.planeSize)]!
+        const toZ = this.availableZ[Math.floor(to / this.planeSize)]!
+        const fromCellId = from % this.planeSize
+        const toCellId = to % this.planeSize
+        const previous = index === 1 && fromZ === toZ
+          ? route.startPoint
+          : { x: this.cellCenterX[fromCellId]!, y: this.cellCenterY[fromCellId]! }
+        const next = index === route.states.length - 1 && fromZ === toZ
+          ? route.endPoint
+          : { x: this.cellCenterX[toCellId]!, y: this.cellCenterY[toCellId]! }
+        if (fromZ === toZ) {
+          if (fromZ < candidateMinZ || fromZ > candidateMaxZ) continue
+          const requiredDistance =
+            this.traceMargin + this.traceThickness / 2 +
+            (isVia ? this.viaDiameter / 2 : this.traceThickness / 2)
+          const distanceSquared = isVia
+            ? getSquaredDistanceFromPointToSegment({
+                point: end, segmentStart: previous, segmentEnd: next,
+              })
+            : getSquaredDistanceBetweenSegments({
+                firstStart: start, firstEnd: end,
+                secondStart: previous, secondEnd: next,
+              })
+          if (distanceSquared < (requiredDistance - 1e-6) ** 2) return true
+        } else {
+          const minZ = this.allowBlindAndBuriedVias
+            ? Math.min(fromZ, toZ) : Math.min(...this.availableZ)
+          const maxZ = this.allowBlindAndBuriedVias
+            ? Math.max(fromZ, toZ) : Math.max(...this.availableZ)
+          if (minZ > candidateMaxZ || maxZ < candidateMinZ) continue
+          const requiredDistance =
+            this.traceMargin + this.viaDiameter / 2 +
+            (isVia ? this.viaDiameter / 2 : this.traceThickness / 2)
+          const distanceSquared = isVia
+            ? (end.x - next.x) ** 2 + (end.y - next.y) ** 2
+            : getSquaredDistanceFromPointToSegment({
+                point: next, segmentStart: start, segmentEnd: end,
+              })
+          if (distanceSquared < (requiredDistance - 1e-6) ** 2) return true
+        }
+      }
+    }
+    return false
   }
 
   private isViaMovePhysicallyBlocked(
@@ -2569,12 +2674,17 @@ export class HighDensitySolverB01 extends BaseSolver {
     const cy = this.cellCenterY[cellId]!
     const minZ = Math.min(this.availableZ[fromLayer]!, this.availableZ[toLayer]!)
     const maxZ = Math.max(this.availableZ[fromLayer]!, this.availableZ[toLayer]!)
-    this.forEachCellNearCircle(cx, cy, this.viaKeepoutRadius, (occCellId) => {
+    // Occupancy already includes the clearance needed by a trace center.
+    // A via candidate needs only its extra radius, not a second full halo.
+    const candidateRadius = this.useExactPortCoordinates
+      ? Math.max(0, (this.viaDiameter - this.traceThickness) / 2)
+      : this.viaKeepoutRadius
+    this.forEachCellNearCircle(cx, cy, candidateRadius, (occCellId) => {
       if (
         !circleIntersectsRect(
           cx,
           cy,
-          this.viaKeepoutRadius,
+          candidateRadius,
           this.cellMinX[occCellId]!,
           this.cellMinY[occCellId]!,
           this.cellMaxX[occCellId]!,
@@ -3020,6 +3130,13 @@ export class HighDensitySolverB01 extends BaseSolver {
         return
       }
       const flatIdx = z * this.planeSize + cellId
+      if (this.useExactPortCoordinates) {
+        const existing = this.usedCellsFlat[flatIdx]!
+        if (existing === -1) this.usedCellsFlat[flatIdx] = connId
+        else if (existing !== connId) this.addSharedOccupant(flatIdx, connId)
+        indices.push(flatIdx)
+        return
+      }
       if (
         cellId !== sourceCellId &&
         this.shouldSkipFixedPortHalo(flatIdx, connId)
@@ -3074,6 +3191,13 @@ export class HighDensitySolverB01 extends BaseSolver {
           continue
         }
         const flatIdx = z * this.planeSize + cellId
+        if (this.useExactPortCoordinates) {
+          const existing = this.usedCellsFlat[flatIdx]!
+          if (existing === -1) this.usedCellsFlat[flatIdx] = connId
+          else if (existing !== connId) this.addSharedOccupant(flatIdx, connId)
+          indices.push(flatIdx)
+          continue
+        }
         if (
           cellId !== sourceCellId &&
           this.shouldSkipFixedPortHalo(flatIdx, connId)
