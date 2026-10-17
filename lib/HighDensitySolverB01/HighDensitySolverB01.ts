@@ -2178,6 +2178,7 @@ export class HighDensitySolverB01 extends BaseSolver {
           rippedHead,
           ripCount,
           0,
+          z,
         )
         if (this._moveCost < 0) continue
 
@@ -2223,11 +2224,24 @@ export class HighDensitySolverB01 extends BaseSolver {
     rippedHead: number,
     currentRipCount: number,
     lateralCost: number,
+    fromZ?: number,
   ): void {
     let cost = 0
     let head = rippedHead
     let ripCount = currentRipCount
     const toFlatIdx = toZ * this.planeSize + toCellId
+
+    if (isVia) {
+      if (fromZ === undefined) {
+        throw new Error("A via move must specify its starting layer")
+      }
+      if (this.isViaMovePhysicallyBlocked(activeConn, fromZ, toZ, toCellId)) {
+        this._moveCost = -1
+        this._moveRippedHead = head
+        this._moveRipCount = ripCount
+        return
+      }
+    }
 
     const obstacleRootIds = isVia
       ? this.obstacleViaRootIdsByCell[toCellId]
@@ -2328,6 +2342,39 @@ export class HighDensitySolverB01 extends BaseSolver {
     this._moveCost = cost
     this._moveRippedHead = head
     this._moveRipCount = ripCount
+  }
+
+  private isViaMovePhysicallyBlocked(
+    activeConn: ConnId,
+    fromLayer: number,
+    toLayer: number,
+    cellId: number,
+  ): boolean {
+    const minZ = Math.min(this.availableZ[fromLayer]!, this.availableZ[toLayer]!)
+    const maxZ = Math.max(this.availableZ[fromLayer]!, this.availableZ[toLayer]!)
+    for (let z = minZ; z <= maxZ; z++) {
+      if (!this.zToLayer.has(z)) return true
+    }
+    const center = applyAffineTransformToPoint(this.gridToBoundsTransform, {
+      x: this.cellCenterX[cellId]!,
+      y: this.cellCenterY[cellId]!,
+    })
+    const radius = this.viaDiameter / 2 + this.traceThickness / 2 + this.traceMargin
+    for (const port of this.nodeWithPortPoints.portPoints) {
+      if (port.z < minZ || port.z > maxZ) continue
+      const owner = this.connNameToId.get(port.connectionName)
+      if (owner === undefined) {
+        throw new Error(`Fixed port has no connection: ${port.connectionName}`)
+      }
+      if (owner === activeConn || this.allowSharedUse(activeConn, owner)) continue
+      if (
+        (center.x - port.x) ** 2 + (center.y - port.y) ** 2 <
+        (radius - 1e-6) ** 2
+      ) {
+        return true
+      }
+    }
+    return false
   }
 
   private fillViaOccupants(cellId: number, activeConn: ConnId): void {
