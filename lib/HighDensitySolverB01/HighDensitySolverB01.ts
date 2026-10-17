@@ -1540,7 +1540,9 @@ export class HighDensitySolverB01 extends BaseSolver {
           })
 
     const requiredPortDistance = this.traceThickness + this.traceMargin
-    for (const port of this.nodeWithPortPoints.portPoints) {
+    for (const port of this.useExactPortCoordinates
+      ? this.nodeWithPortPoints.portPoints
+      : []) {
       if (port.z !== this.availableZ[params.layer]) continue
       const owner = this.connNameToId.get(port.connectionName)
       if (owner === undefined) {

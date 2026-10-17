@@ -6,6 +6,7 @@ test("B01 trace moves preserve clearance to exact foreign ports, not their grid 
   const solver = new HighDensitySolverB01({
     ...defaultB01Params,
     lowResolutionCellSize: 0.1,
+    useExactPortCoordinates: true,
     nodeWithPortPoints: {
       capacityMeshNodeId: "exact-port-clearance",
       center: { x: 0, y: 0 },
