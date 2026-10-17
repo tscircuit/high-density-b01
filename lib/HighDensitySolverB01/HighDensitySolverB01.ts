@@ -330,7 +330,6 @@ type ObstacleViaPrimitive = {
   rootId: ObstacleRootId
   center: Point2d
   viaRadius: number
-  holeRadius: number
   layers: number[]
 }
 
@@ -650,8 +649,6 @@ export interface HighDensitySolverB01Props {
   highResolutionCellThickness?: number
   lowResolutionCellSize?: number
   viaDiameter: number
-  viaHoleDiameter?: number
-  viaHoleClearance?: number
   maxCellCount?: number
   stepMultiplier?: number
   traceThickness?: number
@@ -687,8 +684,6 @@ export class HighDensitySolverB01 extends BaseSolver {
   highResolutionCellThickness: number
   lowResolutionCellSize: number
   viaDiameter: number
-  viaHoleDiameter?: number
-  viaHoleClearance?: number
   MAX_RIPS: number
   maxCellCount?: number
   traceThickness: number
@@ -876,14 +871,6 @@ export class HighDensitySolverB01 extends BaseSolver {
     )
     this.lowResolutionCellSize = props.lowResolutionCellSize ?? 0.4
     this.viaDiameter = props.viaDiameter
-    this.viaHoleDiameter = props.viaHoleDiameter
-    this.viaHoleClearance = props.viaHoleClearance
-    if (
-      (this.viaHoleDiameter === undefined) !==
-      (this.viaHoleClearance === undefined)
-    ) {
-      throw new Error("Drill spacing requires both via hole diameter and clearance")
-    }
     this.maxCellCount = props.maxCellCount
     this.traceThickness = props.traceThickness ?? 0.1
     this.traceMargin = props.traceMargin ?? 0.15
@@ -919,8 +906,6 @@ export class HighDensitySolverB01 extends BaseSolver {
         highResolutionCellThickness: this.highResolutionCellThickness,
         lowResolutionCellSize: this.lowResolutionCellSize,
         viaDiameter: this.viaDiameter,
-        viaHoleDiameter: this.viaHoleDiameter,
-        viaHoleClearance: this.viaHoleClearance,
         maxCellCount: this.maxCellCount,
         stepMultiplier: this.stepMultiplier,
         traceThickness: this.traceThickness,
@@ -1172,7 +1157,6 @@ export class HighDensitySolverB01 extends BaseSolver {
             center: segmentEnd,
             obstacleRootId,
             obstacleViaDiameter: obstacle.viaDiameter,
-            obstacleHoleDiameter: obstacle.viaHoleDiameter,
             zStart: segmentStart.z,
             zEnd: segmentEnd.z,
             obstacleIndex,
@@ -1189,7 +1173,6 @@ export class HighDensitySolverB01 extends BaseSolver {
           center: via,
           obstacleRootId,
           obstacleViaDiameter: obstacle.viaDiameter,
-          obstacleHoleDiameter: obstacle.viaHoleDiameter,
           zStart: via.zStart,
           zEnd: via.zEnd,
           obstacleIndex,
@@ -1364,7 +1347,6 @@ export class HighDensitySolverB01 extends BaseSolver {
     center: Point2d
     obstacleRootId: ObstacleRootId
     obstacleViaDiameter: number
-    obstacleHoleDiameter?: number
     zStart?: number
     zEnd?: number
     obstacleIndex: number
@@ -1383,13 +1365,12 @@ export class HighDensitySolverB01 extends BaseSolver {
         z >= minZ && z <= maxZ ? [layer] : [],
       )
     }
-    if (layers.length === 0 && this.viaHoleDiameter === undefined) return null
+    if (layers.length === 0) return null
 
     this.obstacleViaPrimitives.push({
       rootId: params.obstacleRootId,
       center: params.center,
       viaRadius: params.obstacleViaDiameter / 2,
-      holeRadius: (params.obstacleHoleDiameter ?? params.obstacleViaDiameter) / 2,
       layers,
     })
     const gridCenter = this.transformBoundsPointToGrid(params.center)
@@ -1726,20 +1707,6 @@ export class HighDensitySolverB01 extends BaseSolver {
     }
 
     for (const obstacleVia of this.obstacleViaPrimitives) {
-      if (this.viaHoleDiameter !== undefined) {
-        const distanceSquared =
-          (center.x - obstacleVia.center.x) ** 2 +
-          (center.y - obstacleVia.center.y) ** 2
-        const sameNet =
-          this.obstacleRootNames[obstacleVia.rootId] === activeRootConnectionName
-        const requiredDistance =
-          this.viaHoleDiameter / 2 + obstacleVia.holeRadius +
-          this.viaHoleClearance!
-        if (
-          !(sameNet && distanceSquared < 1e-12) &&
-          distanceSquared < (requiredDistance - 1e-6) ** 2
-        ) return true
-      }
       if (
         this.allowBlindAndBuriedVias &&
         !obstacleVia.layers.some(
@@ -2559,8 +2526,7 @@ export class HighDensitySolverB01 extends BaseSolver {
           ...(this.obstacleTraceRootIdsFlat[toFlatIdx] ?? []),
         ]
     const isBlockedByFixedCopper = isVia
-      ? (this.viaHoleDiameter !== undefined ||
-          this.isBlockedByObstacleRoots(obstacleRootIds, activeConn)) &&
+      ? this.isBlockedByObstacleRoots(obstacleRootIds, activeConn) &&
         this.isViaMoveBlockedByObstacleGeometry({
           activeConn,
           cellId: toCellId,
@@ -2618,8 +2584,7 @@ export class HighDensitySolverB01 extends BaseSolver {
             toCellId,
             true,
             fromZ!,
-          ) &&
-          !this.doesViaConflictWithDrill(occ, toCellId, activeConn)
+          )
         ) {
           continue
         }
@@ -2758,30 +2723,6 @@ export class HighDensitySolverB01 extends BaseSolver {
     return false
   }
 
-  private doesViaConflictWithDrill(
-    owner: ConnId,
-    cellId: number,
-    activeConn: ConnId,
-  ): boolean {
-    if (this.viaHoleDiameter === undefined) return false
-    const requiredDistance = this.viaHoleDiameter + this.viaHoleClearance!
-    const x = this.cellCenterX[cellId]!
-    const y = this.cellCenterY[cellId]!
-    for (const route of this.getSolvedRoutesForConn(owner)) {
-      for (const otherCell of route.viaCellIds) {
-        const distanceSquared =
-          (x - this.cellCenterX[otherCell]!) ** 2 +
-          (y - this.cellCenterY[otherCell]!) ** 2
-        // Same-net visits may refer to one shared physical drill site.
-        if (distanceSquared < 1e-12 && this.allowSharedUse(activeConn, owner)) {
-          continue
-        }
-        if (distanceSquared < (requiredDistance - 1e-6) ** 2) return true
-      }
-    }
-    return false
-  }
-
   private isViaMovePhysicallyBlocked(
     activeConn: ConnId,
     fromLayer: number,
@@ -2860,17 +2801,6 @@ export class HighDensitySolverB01 extends BaseSolver {
         this.pushFlatOccupants(z * this.planeSize + occCellId, activeConn, occs)
       }
     })
-    // Drill spacing is a separate manufacturing constraint from copper-layer
-    // overlap. Disjoint blind spans can share copper capacity without making
-    // two nearby drilled holes legal.
-    if (this.viaHoleDiameter !== undefined) {
-      for (let owner = 0; owner < this.solvedRoutes.length; owner++) {
-        if (owner === activeConn) continue
-        if (this.doesViaConflictWithDrill(owner, cellId, activeConn)) {
-          pushUnique(occs, owner)
-        }
-      }
-    }
   }
 
   private fillTraceOccupants(
