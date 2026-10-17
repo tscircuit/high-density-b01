@@ -6,6 +6,7 @@ export type HighDensityRouteObstacle = {
   rootConnectionName?: string
   traceThickness: number
   viaDiameter: number
+  viaHoleDiameter?: number
   route: HighDensityRoutePoint[]
   vias: Array<{
     x: number
