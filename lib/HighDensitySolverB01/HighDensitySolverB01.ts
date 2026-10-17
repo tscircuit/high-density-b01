@@ -258,6 +258,8 @@ class TypedRipChain {
   connId = new Int32Array(1024)
   prev = new Int32Array(1024).fill(-1)
   length = 0
+  trackRipSets = false
+  private masks: bigint[] = []
 
   clear() {
     this.length = 0
@@ -268,7 +270,17 @@ class TypedRipChain {
     const idx = this.length++
     this.connId[idx] = connId
     this.prev[idx] = prevHead
+    if (this.trackRipSets) {
+      this.masks[idx] = this.getMask(prevHead) | (1n << BigInt(connId))
+    }
     return idx
+  }
+
+  getMask(head: number): bigint {
+    if (head === -1) return 0n
+    const mask = this.masks[head]
+    if (mask === undefined) throw new Error(`Missing rip-set mask for chain ${head}`)
+    return mask
   }
 
   contains(head: number, connId: number) {
@@ -765,6 +777,10 @@ export class HighDensitySolverB01 extends BaseSolver {
   private _moveCost = 0
   private _moveRippedHead = -1
   private _moveRipCount = 0
+  private physicalSearchLabels = new Map<
+    number,
+    Map<bigint, { cost: number; visited: boolean }>
+  >()
 
   private traceKeepoutRadius!: number
   private viaKeepoutRadius!: number
@@ -1065,6 +1081,7 @@ export class HighDensitySolverB01 extends BaseSolver {
     this.nodePool = new TypedNodePool()
     this.heap = new TypedMinHeap()
     this.ripChain = new TypedRipChain()
+    this.ripChain.trackRipSets = this.useExactPortCoordinates
     this.seqCounter = 0
   }
 
@@ -2243,6 +2260,7 @@ export class HighDensitySolverB01 extends BaseSolver {
 
       this.nodePool.clear()
       this.ripChain.clear()
+      this.physicalSearchLabels.clear()
       this.heap.clear()
       this.seqCounter = 0
       this.searchIterations = 0
@@ -2265,6 +2283,9 @@ export class HighDensitySolverB01 extends BaseSolver {
       )
       const startFlatIdx = next.startZ * this.planeSize + next.startCellId
       const startStateIdx = this.getSearchStateIdx(startFlatIdx, 0)
+      if (this.useExactPortCoordinates) {
+        this.queuePhysicalSearchLabel(startFlatIdx, -1, 0)
+      }
       this.bestGStamp[startStateIdx] = this.stamp
       this.bestGValue[startStateIdx] = 0
       this.heap.push(f, this.seqCounter++, startIdx)
@@ -2309,7 +2330,13 @@ export class HighDensitySolverB01 extends BaseSolver {
 
     const flatIdx = z * this.planeSize + cellId
     const searchStateIdx = this.getSearchStateIdx(flatIdx, ripCount)
-    if (this.visitedStamp[searchStateIdx] === this.stamp) return
+    if (this.useExactPortCoordinates) {
+      const label = this.physicalSearchLabels.get(flatIdx)?.get(
+        this.ripChain.getMask(rippedHead),
+      )
+      if (!label || label.visited || g > label.cost) return
+      label.visited = true
+    } else if (this.visitedStamp[searchStateIdx] === this.stamp) return
     this.visitedStamp[searchStateIdx] = this.stamp
     this.visitedFlatStamp[flatIdx] = this.stamp
 
@@ -2349,10 +2376,15 @@ export class HighDensitySolverB01 extends BaseSolver {
         nextFlatIdx,
         this._moveRipCount,
       )
-      if (visited[nextStateIdx] === stamp) continue
+      if (!this.useExactPortCoordinates && visited[nextStateIdx] === stamp) continue
 
       const g2 = g + this._moveCost
       if (
+        this.useExactPortCoordinates &&
+        !this.queuePhysicalSearchLabel(nextFlatIdx, this._moveRippedHead, g2)
+      ) continue
+      if (
+        !this.useExactPortCoordinates &&
         this.bestGStamp[nextStateIdx] === stamp &&
         g2 >= this.bestGValue[nextStateIdx]!
       ) {
@@ -2398,10 +2430,15 @@ export class HighDensitySolverB01 extends BaseSolver {
           nextFlatIdx,
           this._moveRipCount,
         )
-        if (visited[nextStateIdx] === stamp) continue
+        if (!this.useExactPortCoordinates && visited[nextStateIdx] === stamp) continue
 
         const g2 = g + this._moveCost
         if (
+          this.useExactPortCoordinates &&
+          !this.queuePhysicalSearchLabel(nextFlatIdx, this._moveRippedHead, g2)
+        ) continue
+        if (
+          !this.useExactPortCoordinates &&
           this.bestGStamp[nextStateIdx] === stamp &&
           g2 >= this.bestGValue[nextStateIdx]!
         ) {
@@ -2425,6 +2462,29 @@ export class HighDensitySolverB01 extends BaseSolver {
         this.heap.push(f2, this.seqCounter++, newNodeIdx)
       }
     }
+  }
+
+  private queuePhysicalSearchLabel(
+    flatIdx: number,
+    ripHead: number,
+    cost: number,
+  ): boolean {
+    const mask = this.ripChain.getMask(ripHead)
+    let labels = this.physicalSearchLabels.get(flatIdx)
+    if (!labels) {
+      labels = new Map()
+      this.physicalSearchLabels.set(flatIdx, labels)
+    }
+    for (const [previousMask, previous] of labels) {
+      if ((previousMask & mask) === mask && previous.cost <= cost) return false
+    }
+    for (const [previousMask, previous] of labels) {
+      if ((previousMask & mask) === previousMask && cost <= previous.cost) {
+        labels.delete(previousMask)
+      }
+    }
+    labels.set(mask, { cost, visited: false })
+    return true
   }
 
   private computeMoveCostAndRips(
