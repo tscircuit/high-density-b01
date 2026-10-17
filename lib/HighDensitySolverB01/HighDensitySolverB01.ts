@@ -2095,17 +2095,51 @@ export class HighDensitySolverB01 extends BaseSolver {
   }
 
   private buildPortAlignedGrid(): void {
+    const portClearance =
+      this.viaDiameter / 2 + this.traceThickness / 2 + this.traceMargin
+    const viaBoundaryXs = [
+      this.boundsMinX + this.viaMinDistFromBorder,
+      this.boundsMaxX - this.viaMinDistFromBorder,
+    ]
+    const viaBoundaryYs = [
+      this.boundsMinY + this.viaMinDistFromBorder,
+      this.boundsMaxY - this.viaMinDistFromBorder,
+    ]
     const xs = getPortAlignedGridCoordinates(
       this.boundsMinX,
       this.boundsMaxX,
       this.highResolutionCellSize,
-      this.nodeWithPortPoints.portPoints.map((port) => port.x),
+      [
+        ...viaBoundaryXs,
+        ...this.nodeWithPortPoints.portPoints.flatMap((port) => {
+          const coordinates = [port.x, port.x - portClearance, port.x + portClearance]
+          for (const y of viaBoundaryYs) {
+            const dy = y - port.y
+            if (Math.abs(dy) >= portClearance) continue
+            const dx = Math.sqrt(portClearance ** 2 - dy ** 2)
+            coordinates.push(port.x - dx, port.x + dx)
+          }
+          return coordinates
+        }),
+      ],
     )
     const ys = getPortAlignedGridCoordinates(
       this.boundsMinY,
       this.boundsMaxY,
       this.highResolutionCellSize,
-      this.nodeWithPortPoints.portPoints.map((port) => port.y),
+      [
+        ...viaBoundaryYs,
+        ...this.nodeWithPortPoints.portPoints.flatMap((port) => {
+          const coordinates = [port.y, port.y - portClearance, port.y + portClearance]
+          for (const x of viaBoundaryXs) {
+            const dx = x - port.x
+            if (Math.abs(dx) >= portClearance) continue
+            const dy = Math.sqrt(portClearance ** 2 - dx ** 2)
+            coordinates.push(port.y - dy, port.y + dy)
+          }
+          return coordinates
+        }),
+      ],
     )
     this.portAlignedXCoordinates = xs
     this.portAlignedYCoordinates = ys
@@ -2168,7 +2202,7 @@ export class HighDensitySolverB01 extends BaseSolver {
             this.boundsMaxX - x,
             y - this.boundsMinY,
             this.boundsMaxY - y,
-          ) >= this.viaMinDistFromBorder
+          ) >= this.viaMinDistFromBorder - 1e-9
             ? 1
             : 0
         if (col + 1 < xs.length) {
@@ -2437,7 +2471,9 @@ export class HighDensitySolverB01 extends BaseSolver {
           fromLayer: fromZ!,
           toLayer: toZ,
         })
-      : this.isLateralMoveBlockedByFixedCopper({
+      : (this.useExactPortCoordinates ||
+          this.isBlockedByObstacleRoots(obstacleRootIds, activeConn)) &&
+        this.isLateralMoveBlockedByFixedCopper({
           activeConn,
           layer: toZ,
           fromCellId,
