@@ -912,6 +912,8 @@ export class HighDensitySolverB01 extends BaseSolver {
         traceMargin: this.traceMargin,
         obstacleClearanceMargin: this.obstacleClearanceMargin,
         viaMinDistFromBorder: this.viaMinDistFromBorder,
+        allowBlindAndBuriedVias: this.allowBlindAndBuriedVias,
+        useExactPortCoordinates: this.useExactPortCoordinates,
         showPenaltyMap: this.showPenaltyMap,
         showUsedCellMap: this.showUsedCellMap,
         effort: this.effort,
