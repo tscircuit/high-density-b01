@@ -3240,6 +3240,12 @@ export class HighDensitySolverB01 extends BaseSolver {
             aliasPoints[0] = { ...alias.startPoint }
             if (aliasPoints.length > 1) {
               aliasPoints[aliasPoints.length - 1] = { ...alias.endPoint }
+            } else if (
+              alias.startPoint.x !== alias.endPoint.x ||
+              alias.startPoint.y !== alias.endPoint.y ||
+              alias.startPoint.z !== alias.endPoint.z
+            ) {
+              aliasPoints.push({ ...alias.endPoint })
             }
           }
           result.push({
