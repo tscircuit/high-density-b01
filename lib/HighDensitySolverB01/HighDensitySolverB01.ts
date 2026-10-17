@@ -1,6 +1,11 @@
 import { BaseSolver } from "@tscircuit/solver-utils"
 import { getConnectionPortPointPairs } from "../getConnectionPortPointPairs"
 import {
+  getCoordinateLowerBound,
+  getNearestCoordinateIndex,
+  getPortAlignedGridCoordinates,
+} from "./portAlignedGridCoordinates"
+import {
   type AffineTransform,
   applyAffineTransformToPoint,
 } from "../gridToAffineTransform"
@@ -639,6 +644,7 @@ export interface HighDensitySolverB01Props {
   obstacleClearanceMargin?: number
   viaMinDistFromBorder?: number
   allowBlindAndBuriedVias?: boolean
+  useExactPortCoordinates?: boolean
   showPenaltyMap?: boolean
   showUsedCellMap?: boolean
   effort?: number
@@ -673,6 +679,9 @@ export class HighDensitySolverB01 extends BaseSolver {
   obstacleClearanceMargin: number
   viaMinDistFromBorder: number
   allowBlindAndBuriedVias: boolean
+  useExactPortCoordinates: boolean
+  private portAlignedXCoordinates: number[] | null = null
+  private portAlignedYCoordinates: number[] | null = null
   showPenaltyMap: boolean
   showUsedCellMap: boolean
   effort: number
@@ -852,6 +861,7 @@ export class HighDensitySolverB01 extends BaseSolver {
     this.obstacleClearanceMargin = props.obstacleClearanceMargin ?? 0
     this.viaMinDistFromBorder = props.viaMinDistFromBorder ?? 0.15
     this.allowBlindAndBuriedVias = props.allowBlindAndBuriedVias ?? false
+    this.useExactPortCoordinates = props.useExactPortCoordinates ?? false
     this.showPenaltyMap = props.showPenaltyMap ?? false
     this.showUsedCellMap = props.showUsedCellMap ?? false
     this.effort = props.effort ?? 1
@@ -1502,7 +1512,7 @@ export class HighDensitySolverB01 extends BaseSolver {
     )
   }
 
-  private isLateralMoveBlockedByObstacleGeometry(params: {
+  private isLateralMoveBlockedByFixedCopper(params: {
     activeConn: ConnId
     layer: number
     fromCellId: number
@@ -1528,6 +1538,30 @@ export class HighDensitySolverB01 extends BaseSolver {
             x: this.cellCenterX[params.toCellId]!,
             y: this.cellCenterY[params.toCellId]!,
           })
+
+    const requiredPortDistance = this.traceThickness + this.traceMargin
+    for (const port of this.nodeWithPortPoints.portPoints) {
+      if (port.z !== this.availableZ[params.layer]) continue
+      const owner = this.connNameToId.get(port.connectionName)
+      if (owner === undefined) {
+        throw new Error(`Fixed port has no connection: ${port.connectionName}`)
+      }
+      if (
+        owner === params.activeConn ||
+        this.allowSharedUse(params.activeConn, owner)
+      ) {
+        continue
+      }
+      if (
+        getSquaredDistanceFromPointToSegment({
+          point: port,
+          segmentStart,
+          segmentEnd,
+        }) < (requiredPortDistance - 1e-6) ** 2
+      ) {
+        return true
+      }
+    }
 
     for (const obstacleTrace of this.obstacleTracePrimitives) {
       if (
@@ -1708,6 +1742,10 @@ export class HighDensitySolverB01 extends BaseSolver {
   }
 
   private buildFiveRegionGrid(width: number, height: number) {
+    if (this.useExactPortCoordinates) {
+      this.buildPortAlignedGrid()
+      return
+    }
     this.fineCols = Math.max(1, Math.ceil(width / this.highResolutionCellSize))
     this.fineRows = Math.max(1, Math.ceil(height / this.highResolutionCellSize))
 
@@ -2051,6 +2089,103 @@ export class HighDensitySolverB01 extends BaseSolver {
     this.neighborCosts = flattened.costs
   }
 
+  private buildPortAlignedGrid(): void {
+    const xs = getPortAlignedGridCoordinates(
+      this.boundsMinX,
+      this.boundsMaxX,
+      this.highResolutionCellSize,
+      this.nodeWithPortPoints.portPoints.map((port) => port.x),
+    )
+    const ys = getPortAlignedGridCoordinates(
+      this.boundsMinY,
+      this.boundsMaxY,
+      this.highResolutionCellSize,
+      this.nodeWithPortPoints.portPoints.map((port) => port.y),
+    )
+    this.portAlignedXCoordinates = xs
+    this.portAlignedYCoordinates = ys
+    this.fineCols = xs.length
+    this.fineRows = ys.length
+    this.bandCols = 0
+    this.bandRows = 0
+    this.lowScale = 1
+    this.regions = REGION_NAMES.map((name, id) => ({
+      id,
+      name,
+      fineOriginRow: 0,
+      fineOriginCol: 0,
+      fineRows: id === REGION_MIDDLE ? ys.length : 0,
+      fineCols: id === REGION_MIDDLE ? xs.length : 0,
+      cellScale: 1,
+      rows: id === REGION_MIDDLE ? ys.length : 0,
+      cols: id === REGION_MIDDLE ? xs.length : 0,
+      offset: 0,
+    }))
+    this.planeSize = xs.length * ys.length
+    this.cellCenterX = new Float64Array(this.planeSize)
+    this.cellCenterY = new Float64Array(this.planeSize)
+    this.cellMinX = new Float64Array(this.planeSize)
+    this.cellMinY = new Float64Array(this.planeSize)
+    this.cellMaxX = new Float64Array(this.planeSize)
+    this.cellMaxY = new Float64Array(this.planeSize)
+    this.cellWidth = new Float64Array(this.planeSize)
+    this.cellHeight = new Float64Array(this.planeSize)
+    this.cellRegion = new Uint8Array(this.planeSize).fill(REGION_MIDDLE)
+    this.cellRow = new Int32Array(this.planeSize)
+    this.cellCol = new Int32Array(this.planeSize)
+    this.viaAllowed = new Uint8Array(this.planeSize)
+    const neighbors: NeighborEdge[][] = Array.from(
+      { length: this.planeSize },
+      () => [],
+    )
+    for (let row = 0; row < ys.length; row++) {
+      const y = ys[row]!
+      const minY = row === 0 ? y : (ys[row - 1]! + y) / 2
+      const maxY = row + 1 === ys.length ? y : (y + ys[row + 1]!) / 2
+      for (let col = 0; col < xs.length; col++) {
+        const x = xs[col]!
+        const minX = col === 0 ? x : (xs[col - 1]! + x) / 2
+        const maxX = col + 1 === xs.length ? x : (x + xs[col + 1]!) / 2
+        const cellId = row * xs.length + col
+        this.cellCenterX[cellId] = x
+        this.cellCenterY[cellId] = y
+        this.cellMinX[cellId] = minX
+        this.cellMinY[cellId] = minY
+        this.cellMaxX[cellId] = maxX
+        this.cellMaxY[cellId] = maxY
+        this.cellWidth[cellId] = maxX - minX
+        this.cellHeight[cellId] = maxY - minY
+        this.cellRow[cellId] = row
+        this.cellCol[cellId] = col
+        this.viaAllowed[cellId] =
+          Math.min(
+            x - this.boundsMinX,
+            this.boundsMaxX - x,
+            y - this.boundsMinY,
+            this.boundsMaxY - y,
+          ) >= this.viaMinDistFromBorder
+            ? 1
+            : 0
+        if (col + 1 < xs.length) {
+          const next = cellId + 1
+          const cost = xs[col + 1]! - x
+          neighbors[cellId]!.push({ cellId: next, cost })
+          neighbors[next]!.push({ cellId, cost })
+        }
+        if (row + 1 < ys.length) {
+          const next = cellId + xs.length
+          const cost = ys[row + 1]! - y
+          neighbors[cellId]!.push({ cellId: next, cost })
+          neighbors[next]!.push({ cellId, cost })
+        }
+      }
+    }
+    const flattened = this.flattenNeighborLists(neighbors)
+    this.neighborOffset = flattened.offset
+    this.neighborIds = flattened.ids
+    this.neighborCosts = flattened.costs
+  }
+
   private cellIdFor(regionId: number, row: number, col: number) {
     const region = this.regions[regionId]!
     return region.offset + row * region.cols + col
@@ -2289,22 +2424,21 @@ export class HighDensitySolverB01 extends BaseSolver {
           ] ?? []),
           ...(this.obstacleTraceRootIdsFlat[toFlatIdx] ?? []),
         ]
-    const isBlockedByObstacle =
-      this.isBlockedByObstacleRoots(obstacleRootIds, activeConn) &&
-      (isVia
-        ? this.isViaMoveBlockedByObstacleGeometry({
-            activeConn,
-            cellId: toCellId,
-            fromLayer: fromZ!,
-            toLayer: toZ,
-          })
-        : this.isLateralMoveBlockedByObstacleGeometry({
-            activeConn,
-            layer: toZ,
-            fromCellId,
-            toCellId,
-          }))
-    if (isBlockedByObstacle) {
+    const isBlockedByFixedCopper = isVia
+      ? this.isBlockedByObstacleRoots(obstacleRootIds, activeConn) &&
+        this.isViaMoveBlockedByObstacleGeometry({
+          activeConn,
+          cellId: toCellId,
+          fromLayer: fromZ!,
+          toLayer: toZ,
+        })
+      : this.isLateralMoveBlockedByFixedCopper({
+          activeConn,
+          layer: toZ,
+          fromCellId,
+          toCellId,
+        })
+    if (isBlockedByFixedCopper) {
       this._moveCost = -1
       this._moveRippedHead = head
       this._moveRipCount = ripCount
@@ -2687,6 +2821,13 @@ export class HighDensitySolverB01 extends BaseSolver {
   }
 
   private pointToCell(pt: { x: number; y: number; z: number }) {
+    if (this.portAlignedXCoordinates && this.portAlignedYCoordinates) {
+      const col = getNearestCoordinateIndex(this.portAlignedXCoordinates, pt.x)
+      const row = getNearestCoordinateIndex(this.portAlignedYCoordinates, pt.y)
+      const z = this.zToLayer.get(pt.z)
+      if (z === undefined) throw new Error(`Port uses unavailable layer z=${pt.z}`)
+      return { z, cellId: row * this.fineCols + col }
+    }
     const fineCol = clamp(
       Math.floor((pt.x - this.boundsMinX) / this.highResolutionCellSize),
       0,
@@ -2963,6 +3104,21 @@ export class HighDensitySolverB01 extends BaseSolver {
     radius: number,
     visitor: (cellId: number) => void,
   ) {
+    if (this.portAlignedXCoordinates && this.portAlignedYCoordinates) {
+      const xs = this.portAlignedXCoordinates
+      const ys = this.portAlignedYCoordinates
+      const paddedRadius = radius + this.highResolutionCellSize
+      const minCol = getCoordinateLowerBound(xs, cx - paddedRadius)
+      const maxCol = getCoordinateLowerBound(xs, cx + paddedRadius)
+      const minRow = getCoordinateLowerBound(ys, cy - paddedRadius)
+      const maxRow = getCoordinateLowerBound(ys, cy + paddedRadius)
+      for (let row = minRow; row < Math.min(ys.length, maxRow + 1); row++) {
+        for (let col = minCol; col < Math.min(xs.length, maxCol + 1); col++) {
+          visitor(row * xs.length + col)
+        }
+      }
+      return
+    }
     const minFineCol = clamp(
       Math.floor((cx - radius - this.boundsMinX) / this.highResolutionCellSize),
       0,
@@ -3424,6 +3580,9 @@ export class HighDensitySolverB01 extends BaseSolver {
   }
 
   private computeGridToBoundsTransform(): AffineTransform {
+    if (this.useExactPortCoordinates) {
+      return { a: 1, b: 0, c: 0, d: 0, e: 1, f: 0 }
+    }
     let minCenterX = Infinity
     let maxCenterX = -Infinity
     let minCenterY = Infinity
