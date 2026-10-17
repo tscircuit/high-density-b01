@@ -638,6 +638,7 @@ export interface HighDensitySolverB01Props {
   traceMargin?: number
   obstacleClearanceMargin?: number
   viaMinDistFromBorder?: number
+  allowBlindAndBuriedVias?: boolean
   showPenaltyMap?: boolean
   showUsedCellMap?: boolean
   effort?: number
@@ -671,6 +672,7 @@ export class HighDensitySolverB01 extends BaseSolver {
   traceMargin: number
   obstacleClearanceMargin: number
   viaMinDistFromBorder: number
+  allowBlindAndBuriedVias: boolean
   showPenaltyMap: boolean
   showUsedCellMap: boolean
   effort: number
@@ -849,6 +851,7 @@ export class HighDensitySolverB01 extends BaseSolver {
     this.traceMargin = props.traceMargin ?? 0.15
     this.obstacleClearanceMargin = props.obstacleClearanceMargin ?? 0
     this.viaMinDistFromBorder = props.viaMinDistFromBorder ?? 0.15
+    this.allowBlindAndBuriedVias = props.allowBlindAndBuriedVias ?? false
     this.showPenaltyMap = props.showPenaltyMap ?? false
     this.showUsedCellMap = props.showUsedCellMap ?? false
     this.effort = props.effort ?? 1
@@ -1598,14 +1601,31 @@ export class HighDensitySolverB01 extends BaseSolver {
   private isViaMoveBlockedByObstacleGeometry(params: {
     activeConn: ConnId
     cellId: number
+    fromLayer: number
+    toLayer: number
   }): boolean {
     const activeRootConnectionName = this.connIdToRootNet[params.activeConn]
+    const minZ = Math.min(
+      this.availableZ[params.fromLayer]!,
+      this.availableZ[params.toLayer]!,
+    )
+    const maxZ = Math.max(
+      this.availableZ[params.fromLayer]!,
+      this.availableZ[params.toLayer]!,
+    )
     const center = applyAffineTransformToPoint(this.gridToBoundsTransform, {
       x: this.cellCenterX[params.cellId]!,
       y: this.cellCenterY[params.cellId]!,
     })
 
     for (const obstacleTrace of this.obstacleTracePrimitives) {
+      if (
+        this.allowBlindAndBuriedVias &&
+        (this.availableZ[obstacleTrace.layer]! < minZ ||
+          this.availableZ[obstacleTrace.layer]! > maxZ)
+      ) {
+        continue
+      }
       if (
         this.obstacleRootNames[obstacleTrace.rootId] ===
         activeRootConnectionName
@@ -1630,6 +1650,15 @@ export class HighDensitySolverB01 extends BaseSolver {
 
     for (const obstacleVia of this.obstacleViaPrimitives) {
       if (
+        this.allowBlindAndBuriedVias &&
+        !obstacleVia.layers.some(
+          (layer) =>
+            this.availableZ[layer]! >= minZ && this.availableZ[layer]! <= maxZ,
+        )
+      ) {
+        continue
+      }
+      if (
         this.obstacleRootNames[obstacleVia.rootId] === activeRootConnectionName
       ) {
         continue
@@ -1648,6 +1677,15 @@ export class HighDensitySolverB01 extends BaseSolver {
     }
 
     for (const obstacleRect of this.obstacleRectPrimitives) {
+      if (
+        this.allowBlindAndBuriedVias &&
+        !obstacleRect.layers.some(
+          (layer) =>
+            this.availableZ[layer]! >= minZ && this.availableZ[layer]! <= maxZ,
+        )
+      ) {
+        continue
+      }
       if (
         this.obstacleRootNames[obstacleRect.rootId] === activeRootConnectionName
       ) {
@@ -2257,6 +2295,8 @@ export class HighDensitySolverB01 extends BaseSolver {
         ? this.isViaMoveBlockedByObstacleGeometry({
             activeConn,
             cellId: toCellId,
+            fromLayer: fromZ!,
+            toLayer: toZ,
           })
         : this.isLateralMoveBlockedByObstacleGeometry({
             activeConn,
@@ -2294,7 +2334,7 @@ export class HighDensitySolverB01 extends BaseSolver {
         return
       }
 
-      this.fillViaOccupants(toCellId, activeConn)
+      this.fillViaOccupants(toCellId, activeConn, fromZ!, toZ)
       const occs = this._viaOccs
       for (let i = 0; i < occs.length; i++) {
         const occ = occs[i]!
@@ -2350,8 +2390,12 @@ export class HighDensitySolverB01 extends BaseSolver {
     toLayer: number,
     cellId: number,
   ): boolean {
-    const minZ = Math.min(this.availableZ[fromLayer]!, this.availableZ[toLayer]!)
-    const maxZ = Math.max(this.availableZ[fromLayer]!, this.availableZ[toLayer]!)
+    const minZ = this.allowBlindAndBuriedVias
+      ? Math.min(this.availableZ[fromLayer]!, this.availableZ[toLayer]!)
+      : Math.min(...this.availableZ)
+    const maxZ = this.allowBlindAndBuriedVias
+      ? Math.max(this.availableZ[fromLayer]!, this.availableZ[toLayer]!)
+      : Math.max(...this.availableZ)
     for (let z = minZ; z <= maxZ; z++) {
       if (!this.zToLayer.has(z)) return true
     }
@@ -2377,11 +2421,18 @@ export class HighDensitySolverB01 extends BaseSolver {
     return false
   }
 
-  private fillViaOccupants(cellId: number, activeConn: ConnId): void {
+  private fillViaOccupants(
+    cellId: number,
+    activeConn: ConnId,
+    fromLayer: number,
+    toLayer: number,
+  ): void {
     const occs = this._viaOccs
     occs.length = 0
     const cx = this.cellCenterX[cellId]!
     const cy = this.cellCenterY[cellId]!
+    const minZ = Math.min(this.availableZ[fromLayer]!, this.availableZ[toLayer]!)
+    const maxZ = Math.max(this.availableZ[fromLayer]!, this.availableZ[toLayer]!)
     this.forEachCellNearCircle(cx, cy, this.viaKeepoutRadius, (occCellId) => {
       if (
         !circleIntersectsRect(
@@ -2397,6 +2448,12 @@ export class HighDensitySolverB01 extends BaseSolver {
         return
       }
       for (let z = 0; z < this.layers; z++) {
+        if (
+          this.allowBlindAndBuriedVias &&
+          (this.availableZ[z]! < minZ || this.availableZ[z]! > maxZ)
+        ) {
+          continue
+        }
         this.pushFlatOccupants(z * this.planeSize + occCellId, activeConn, occs)
       }
     })
@@ -2727,8 +2784,18 @@ export class HighDensitySolverB01 extends BaseSolver {
     }
 
     const displacedByVias: ConnId[] = []
-    for (let i = 0; i < viaCellIds.length; i++) {
-      this.markViaFootprint(connId, viaCellIds[i]!, indices, displacedByVias)
+    for (let i = 1; i < states.length; i++) {
+      const fromLayer = Math.floor(states[i - 1]! / this.planeSize)
+      const toLayer = Math.floor(states[i]! / this.planeSize)
+      if (fromLayer === toLayer) continue
+      this.markViaFootprint(
+        connId,
+        states[i]! % this.planeSize,
+        indices,
+        displacedByVias,
+        fromLayer,
+        toLayer,
+      )
     }
 
     while (this.usedIndicesByConn.length <= connId) {
@@ -2835,9 +2902,13 @@ export class HighDensitySolverB01 extends BaseSolver {
     sourceCellId: number,
     indices: number[],
     displacedByVias: ConnId[],
+    fromLayer: number,
+    toLayer: number,
   ) {
     const cx = this.cellCenterX[sourceCellId]!
     const cy = this.cellCenterY[sourceCellId]!
+    const minZ = Math.min(this.availableZ[fromLayer]!, this.availableZ[toLayer]!)
+    const maxZ = Math.max(this.availableZ[fromLayer]!, this.availableZ[toLayer]!)
     this.forEachCellNearCircle(cx, cy, this.viaKeepoutRadius, (cellId) => {
       if (
         !circleIntersectsRect(
@@ -2853,6 +2924,12 @@ export class HighDensitySolverB01 extends BaseSolver {
         return
       }
       for (let z = 0; z < this.layers; z++) {
+        if (
+          this.allowBlindAndBuriedVias &&
+          (this.availableZ[z]! < minZ || this.availableZ[z]! > maxZ)
+        ) {
+          continue
+        }
         const flatIdx = z * this.planeSize + cellId
         if (
           cellId !== sourceCellId &&
@@ -3284,9 +3361,27 @@ export class HighDensitySolverB01 extends BaseSolver {
             alias.reversedFromCanonical ? [...points].reverse() : points
           ).map((point) => ({ ...point }))
           if (aliasPoints.length > 0) {
-            aliasPoints[0] = { ...alias.startPoint }
+            const first = aliasPoints[0]!
+            if (
+              aliasPoints[1] &&
+              first.z !== aliasPoints[1].z &&
+              (first.x !== alias.startPoint.x || first.y !== alias.startPoint.y)
+            ) {
+              aliasPoints.unshift({ ...alias.startPoint })
+            } else {
+              aliasPoints[0] = { ...alias.startPoint }
+            }
             if (aliasPoints.length > 1) {
-              aliasPoints[aliasPoints.length - 1] = { ...alias.endPoint }
+              const last = aliasPoints.at(-1)!
+              const previous = aliasPoints.at(-2)!
+              if (
+                previous.z !== last.z &&
+                (last.x !== alias.endPoint.x || last.y !== alias.endPoint.y)
+              ) {
+                aliasPoints.push({ ...alias.endPoint })
+              } else {
+                aliasPoints[aliasPoints.length - 1] = { ...alias.endPoint }
+              }
             } else if (
               alias.startPoint.x !== alias.endPoint.x ||
               alias.startPoint.y !== alias.endPoint.y ||
