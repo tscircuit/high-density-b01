@@ -68,26 +68,39 @@ test("B01 indexed geometry matches full scans on every grid move", () => {
     actual.setup()
     reference.setup()
     useFullScanObstacleQueries(reference)
-    for (let segmentIndex = 0; segmentIndex < actual["unsolvedSegs"].length; segmentIndex++) {
+    for (
+      let segmentIndex = 0;
+      segmentIndex < actual["unsolvedSegs"].length;
+      segmentIndex++
+    ) {
       const segment = actual["unsolvedSegs"][segmentIndex]!
       actual["activeConnSeg"] = segment
       reference["activeConnSeg"] = reference["unsolvedSegs"][segmentIndex]!
       for (let cellId = 0; cellId < actual.planeSize; cellId++) {
         const viaMove = { activeConn: segment.connId, cellId }
         const viaBlocked = actual["isViaMoveBlockedByObstacleGeometry"](viaMove)
-        expect(viaBlocked).toBe(reference["isViaMoveBlockedByObstacleGeometry"](viaMove))
+        expect(viaBlocked).toBe(
+          reference["isViaMoveBlockedByObstacleGeometry"](viaMove),
+        )
         comparedMoves++
         if (viaBlocked) blockedMoves++
         for (let layer = 0; layer < actual.layers; layer++) {
-          for (let edge = actual.neighborOffset[cellId]!; edge < actual.neighborOffset[cellId + 1]!; edge++) {
+          for (
+            let edge = actual.neighborOffset[cellId]!;
+            edge < actual.neighborOffset[cellId + 1]!;
+            edge++
+          ) {
             const move = {
               activeConn: segment.connId,
               layer,
               fromCellId: cellId,
               toCellId: actual.neighborIds[edge]!,
             }
-            const blocked = actual["isLateralMoveBlockedByObstacleGeometry"](move)
-            expect(blocked).toBe(reference["isLateralMoveBlockedByObstacleGeometry"](move))
+            const blocked =
+              actual["isLateralMoveBlockedByObstacleGeometry"](move)
+            expect(blocked).toBe(
+              reference["isLateralMoveBlockedByObstacleGeometry"](move),
+            )
             comparedMoves++
             if (blocked) blockedMoves++
           }

@@ -15,7 +15,9 @@ test("B01 indexed obstacles preserve routing steps and reduce candidates", () =>
       ...defaultB01Params,
       nodeWithPortPoints: {
         ...sample.nodeWithPortPoints,
-        portPoints: sample.nodeWithPortPoints.portPoints.filter((point) => connectionNames.has(point.connectionName)),
+        portPoints: sample.nodeWithPortPoints.portPoints.filter((point) =>
+          connectionNames.has(point.connectionName),
+        ),
       },
       obstacles: sample.obstacles,
       maxCellCount: 200_000,
@@ -43,7 +45,11 @@ test("B01 indexed obstacles preserve routing steps and reduce candidates", () =>
     while (!reference.solved && !reference.failed) {
       actual.step()
       reference.step()
-      expect([actual.solved, actual.failed, actual.error]).toEqual([reference.solved, reference.failed, reference.error])
+      expect([actual.solved, actual.failed, actual.error]).toEqual([
+        reference.solved,
+        reference.failed,
+        reference.error,
+      ])
       expect(actual.openSet).toEqual(reference.openSet)
       expect(actual["nodePool"].length).toBe(reference["nodePool"].length)
       expect(actual["ripChain"].length).toBe(reference["ripChain"].length)

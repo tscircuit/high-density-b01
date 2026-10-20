@@ -1689,7 +1689,12 @@ export class HighDensitySolverB01 extends BaseSolver {
     })
 
     const traceCandidates =
-      this.obstacleTraceSpatialIndex?.search(center.x, center.y, center.x, center.y) ?? []
+      this.obstacleTraceSpatialIndex?.search(
+        center.x,
+        center.y,
+        center.x,
+        center.y,
+      ) ?? []
     for (const index of traceCandidates) {
       const obstacleTrace = this.obstacleTracePrimitives[index]!
       if (
@@ -1715,7 +1720,12 @@ export class HighDensitySolverB01 extends BaseSolver {
     }
 
     const viaCandidates =
-      this.obstacleViaSpatialIndex?.search(center.x, center.y, center.x, center.y) ?? []
+      this.obstacleViaSpatialIndex?.search(
+        center.x,
+        center.y,
+        center.x,
+        center.y,
+      ) ?? []
     for (const index of viaCandidates) {
       const obstacleVia = this.obstacleViaPrimitives[index]!
       if (
@@ -1737,7 +1747,12 @@ export class HighDensitySolverB01 extends BaseSolver {
     }
 
     const rectCandidates =
-      this.obstacleRectSpatialIndex?.search(center.x, center.y, center.x, center.y) ?? []
+      this.obstacleRectSpatialIndex?.search(
+        center.x,
+        center.y,
+        center.x,
+        center.y,
+      ) ?? []
     for (const index of rectCandidates) {
       const obstacleRect = this.obstacleRectPrimitives[index]!
       if (
