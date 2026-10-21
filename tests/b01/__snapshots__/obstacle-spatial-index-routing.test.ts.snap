@@ -13,7 +13,7 @@ exports[`B01 indexed obstacles preserve routing steps and reduce candidates: sam
     },
     "preservedRouting": {
       "failed": false,
-      "iterations": 4063,
+      "iterationDeltaFromFullScan": 0,
       "ripEvents": 1,
       "routeCount": 5,
       "solved": true,
@@ -31,7 +31,7 @@ exports[`B01 indexed obstacles preserve routing steps and reduce candidates: sam
     },
     "preservedRouting": {
       "failed": false,
-      "iterations": 296,
+      "iterationDeltaFromFullScan": 0,
       "ripEvents": 1,
       "routeCount": 2,
       "solved": true,
@@ -49,7 +49,7 @@ exports[`B01 indexed obstacles preserve routing steps and reduce candidates: sam
     },
     "preservedRouting": {
       "failed": false,
-      "iterations": 549,
+      "iterationDeltaFromFullScan": 0,
       "ripEvents": 0,
       "routeCount": 4,
       "solved": true,
@@ -67,7 +67,7 @@ exports[`B01 indexed obstacles preserve routing steps and reduce candidates: sam
     },
     "preservedRouting": {
       "failed": false,
-      "iterations": 124,
+      "iterationDeltaFromFullScan": 0,
       "ripEvents": 0,
       "routeCount": 4,
       "solved": true,
@@ -85,7 +85,7 @@ exports[`B01 indexed obstacles preserve routing steps and reduce candidates: sam
     },
     "preservedRouting": {
       "failed": false,
-      "iterations": 87,
+      "iterationDeltaFromFullScan": 0,
       "ripEvents": 0,
       "routeCount": 3,
       "solved": true,
@@ -103,7 +103,7 @@ exports[`B01 indexed obstacles preserve routing steps and reduce candidates: sam
     },
     "preservedRouting": {
       "failed": false,
-      "iterations": 100,
+      "iterationDeltaFromFullScan": 0,
       "ripEvents": 0,
       "routeCount": 2,
       "solved": true,
@@ -121,7 +121,7 @@ exports[`B01 indexed obstacles preserve routing steps and reduce candidates: sam
     },
     "preservedRouting": {
       "failed": false,
-      "iterations": 3979,
+      "iterationDeltaFromFullScan": 0,
       "ripEvents": 1,
       "routeCount": 3,
       "solved": true,
@@ -139,7 +139,7 @@ exports[`B01 indexed obstacles preserve routing steps and reduce candidates: sam
     },
     "preservedRouting": {
       "failed": false,
-      "iterations": 227,
+      "iterationDeltaFromFullScan": 0,
       "ripEvents": 0,
       "routeCount": 3,
       "solved": true,
@@ -157,7 +157,7 @@ exports[`B01 indexed obstacles preserve routing steps and reduce candidates: sam
     },
     "preservedRouting": {
       "failed": false,
-      "iterations": 152,
+      "iterationDeltaFromFullScan": 0,
       "ripEvents": 0,
       "routeCount": 2,
       "solved": true,
@@ -175,7 +175,7 @@ exports[`B01 indexed obstacles preserve routing steps and reduce candidates: sam
     },
     "preservedRouting": {
       "failed": false,
-      "iterations": 213,
+      "iterationDeltaFromFullScan": 0,
       "ripEvents": 0,
       "routeCount": 4,
       "solved": true,
@@ -193,7 +193,7 @@ exports[`B01 indexed obstacles preserve routing steps and reduce candidates: sam
     },
     "preservedRouting": {
       "failed": false,
-      "iterations": 1517,
+      "iterationDeltaFromFullScan": 0,
       "ripEvents": 0,
       "routeCount": 4,
       "solved": true,
@@ -211,7 +211,7 @@ exports[`B01 indexed obstacles preserve routing steps and reduce candidates: sam
     },
     "preservedRouting": {
       "failed": false,
-      "iterations": 84,
+      "iterationDeltaFromFullScan": 0,
       "ripEvents": 0,
       "routeCount": 2,
       "solved": true,

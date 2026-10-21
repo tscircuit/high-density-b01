@@ -90,7 +90,9 @@ test("B01 indexed obstacles preserve routing steps and reduce candidates", () =>
       preservedRouting: {
         solved: actual.solved,
         failed: actual.failed,
-        iterations: actual.iterations,
+        // Absolute iteration counts are compared live above. Record their
+        // equality here so shared runtime changes do not rewrite this golden.
+        iterationDeltaFromFullScan: actual.iterations - reference.iterations,
         ripEvents: actual["totalRipEvents"],
         routeCount: actual.getOutput().length,
       },
