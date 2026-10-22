@@ -1,0 +1,222 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`B01 indexed obstacles preserve routing steps and reduce candidates: same routing with fewer candidates offered to exact obstacle checks 1`] = `
+[
+  {
+    "afterSpatialIndex": {
+      "queries": 2145,
+      "returnedObstacleCandidates": 2187,
+    },
+    "beforeFullScan": {
+      "queries": 2145,
+      "returnedObstacleCandidates": 229683,
+    },
+    "preservedRouting": {
+      "failed": false,
+      "iterationDeltaFromFullScan": 0,
+      "ripEvents": 1,
+      "routeCount": 5,
+      "solved": true,
+    },
+    "sample": "obstacle01-source-z04-610",
+  },
+  {
+    "afterSpatialIndex": {
+      "queries": 472,
+      "returnedObstacleCandidates": 436,
+    },
+    "beforeFullScan": {
+      "queries": 472,
+      "returnedObstacleCandidates": 18343,
+    },
+    "preservedRouting": {
+      "failed": false,
+      "iterationDeltaFromFullScan": 0,
+      "ripEvents": 1,
+      "routeCount": 2,
+      "solved": true,
+    },
+    "sample": "obstacle01-source-z04-2207",
+  },
+  {
+    "afterSpatialIndex": {
+      "queries": 144,
+      "returnedObstacleCandidates": 268,
+    },
+    "beforeFullScan": {
+      "queries": 144,
+      "returnedObstacleCandidates": 9504,
+    },
+    "preservedRouting": {
+      "failed": false,
+      "iterationDeltaFromFullScan": 0,
+      "ripEvents": 0,
+      "routeCount": 4,
+      "solved": true,
+    },
+    "sample": "obstacle01-source-z04-2673",
+  },
+  {
+    "afterSpatialIndex": {
+      "queries": 210,
+      "returnedObstacleCandidates": 193,
+    },
+    "beforeFullScan": {
+      "queries": 210,
+      "returnedObstacleCandidates": 19130,
+    },
+    "preservedRouting": {
+      "failed": false,
+      "iterationDeltaFromFullScan": 0,
+      "ripEvents": 0,
+      "routeCount": 4,
+      "solved": true,
+    },
+    "sample": "obstacle01-source-z04-3283",
+  },
+  {
+    "afterSpatialIndex": {
+      "queries": 17,
+      "returnedObstacleCandidates": 18,
+    },
+    "beforeFullScan": {
+      "queries": 17,
+      "returnedObstacleCandidates": 359,
+    },
+    "preservedRouting": {
+      "failed": false,
+      "iterationDeltaFromFullScan": 0,
+      "ripEvents": 0,
+      "routeCount": 3,
+      "solved": true,
+    },
+    "sample": "obstacle01-source-z04-5113",
+  },
+  {
+    "afterSpatialIndex": {
+      "queries": 0,
+      "returnedObstacleCandidates": 0,
+    },
+    "beforeFullScan": {
+      "queries": 0,
+      "returnedObstacleCandidates": 0,
+    },
+    "preservedRouting": {
+      "failed": false,
+      "iterationDeltaFromFullScan": 0,
+      "ripEvents": 0,
+      "routeCount": 2,
+      "solved": true,
+    },
+    "sample": "obstacle01-source-z04-5956",
+  },
+  {
+    "afterSpatialIndex": {
+      "queries": 6545,
+      "returnedObstacleCandidates": 8423,
+    },
+    "beforeFullScan": {
+      "queries": 6545,
+      "returnedObstacleCandidates": 456109,
+    },
+    "preservedRouting": {
+      "failed": false,
+      "iterationDeltaFromFullScan": 0,
+      "ripEvents": 1,
+      "routeCount": 3,
+      "solved": true,
+    },
+    "sample": "obstacle01-source-z04-2851",
+  },
+  {
+    "afterSpatialIndex": {
+      "queries": 687,
+      "returnedObstacleCandidates": 990,
+    },
+    "beforeFullScan": {
+      "queries": 687,
+      "returnedObstacleCandidates": 22809,
+    },
+    "preservedRouting": {
+      "failed": false,
+      "iterationDeltaFromFullScan": 0,
+      "ripEvents": 0,
+      "routeCount": 3,
+      "solved": true,
+    },
+    "sample": "obstacle01-source-z04-3084",
+  },
+  {
+    "afterSpatialIndex": {
+      "queries": 145,
+      "returnedObstacleCandidates": 101,
+    },
+    "beforeFullScan": {
+      "queries": 145,
+      "returnedObstacleCandidates": 9918,
+    },
+    "preservedRouting": {
+      "failed": false,
+      "iterationDeltaFromFullScan": 0,
+      "ripEvents": 0,
+      "routeCount": 2,
+      "solved": true,
+    },
+    "sample": "obstacle01-source-z04-1521",
+  },
+  {
+    "afterSpatialIndex": {
+      "queries": 229,
+      "returnedObstacleCandidates": 444,
+    },
+    "beforeFullScan": {
+      "queries": 229,
+      "returnedObstacleCandidates": 24732,
+    },
+    "preservedRouting": {
+      "failed": false,
+      "iterationDeltaFromFullScan": 0,
+      "ripEvents": 0,
+      "routeCount": 4,
+      "solved": true,
+    },
+    "sample": "obstacle01-source-z04-1987",
+  },
+  {
+    "afterSpatialIndex": {
+      "queries": 2714,
+      "returnedObstacleCandidates": 4411,
+    },
+    "beforeFullScan": {
+      "queries": 2714,
+      "returnedObstacleCandidates": 296031,
+    },
+    "preservedRouting": {
+      "failed": false,
+      "iterationDeltaFromFullScan": 0,
+      "ripEvents": 0,
+      "routeCount": 4,
+      "solved": true,
+    },
+    "sample": "obstacle01-source-z04-5037",
+  },
+  {
+    "afterSpatialIndex": {
+      "queries": 171,
+      "returnedObstacleCandidates": 279,
+    },
+    "beforeFullScan": {
+      "queries": 171,
+      "returnedObstacleCandidates": 8332,
+    },
+    "preservedRouting": {
+      "failed": false,
+      "iterationDeltaFromFullScan": 0,
+      "ripEvents": 0,
+      "routeCount": 2,
+      "solved": true,
+    },
+    "sample": "obstacle01-source-z04-2076",
+  },
+]
+`;

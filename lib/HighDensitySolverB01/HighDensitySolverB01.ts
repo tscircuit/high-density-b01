@@ -1,4 +1,5 @@
 import { BaseSolver } from "@tscircuit/solver-utils"
+import Flatbush from "flatbush"
 import { getConnectionPortPointPairs } from "../getConnectionPortPointPairs"
 import {
   type AffineTransform,
@@ -323,6 +324,20 @@ type ObstacleRectPrimitive = {
   height: number
   rotationRadians: number
   layers: number[]
+}
+
+function createObstacleSpatialIndex<T>(
+  primitives: T[],
+  getBounds: (primitive: T) => RectBounds,
+): Flatbush | null {
+  if (primitives.length === 0) return null
+  const index = new Flatbush(primitives.length)
+  for (const primitive of primitives) {
+    const bounds = getBounds(primitive)
+    index.add(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY)
+  }
+  index.finish()
+  return index
 }
 
 function toRootNetName(
@@ -764,6 +779,9 @@ export class HighDensitySolverB01 extends BaseSolver {
   private obstacleTracePrimitives!: ObstacleTracePrimitive[]
   private obstacleViaPrimitives!: ObstacleViaPrimitive[]
   private obstacleRectPrimitives!: ObstacleRectPrimitive[]
+  private obstacleTraceSpatialIndex: Flatbush | null = null
+  private obstacleViaSpatialIndex: Flatbush | null = null
+  private obstacleRectSpatialIndex: Flatbush | null = null
   private obstacleTraceBlockedCellCount = 0
   private obstacleViaBlockedCellCount = 0
 
@@ -998,6 +1016,7 @@ export class HighDensitySolverB01 extends BaseSolver {
       this.failed = true
       return
     }
+    this.buildObstacleSpatialIndexes()
 
     this.ripStateBuckets = 1
     const searchStateCount = totalCells
@@ -1460,6 +1479,57 @@ export class HighDensitySolverB01 extends BaseSolver {
     )
   }
 
+  private buildObstacleSpatialIndexes(): void {
+    // One index serves trace and via moves. Expanding by the larger routing
+    // radius keeps every exact collision candidate, including negative margins.
+    const routingRadius = Math.max(
+      Math.abs(this.traceThickness / 2 + this.obstacleClearanceMargin),
+      Math.abs(this.viaDiameter / 2 + this.obstacleClearanceMargin),
+    )
+    this.obstacleTraceSpatialIndex = createObstacleSpatialIndex(
+      this.obstacleTracePrimitives,
+      (primitive) => {
+        const radius = primitive.traceRadius + routingRadius
+        return {
+          minX:
+            Math.min(primitive.segmentStart.x, primitive.segmentEnd.x) - radius,
+          minY:
+            Math.min(primitive.segmentStart.y, primitive.segmentEnd.y) - radius,
+          maxX:
+            Math.max(primitive.segmentStart.x, primitive.segmentEnd.x) + radius,
+          maxY:
+            Math.max(primitive.segmentStart.y, primitive.segmentEnd.y) + radius,
+        }
+      },
+    )
+    this.obstacleViaSpatialIndex = createObstacleSpatialIndex(
+      this.obstacleViaPrimitives,
+      (primitive) => {
+        const radius = primitive.viaRadius + routingRadius
+        return {
+          minX: primitive.center.x - radius,
+          minY: primitive.center.y - radius,
+          maxX: primitive.center.x + radius,
+          maxY: primitive.center.y + radius,
+        }
+      },
+    )
+    this.obstacleRectSpatialIndex = createObstacleSpatialIndex(
+      this.obstacleRectPrimitives,
+      (primitive) => {
+        // The circumscribed circle contains a rectangle at every rotation.
+        const radius =
+          Math.hypot(primitive.width / 2, primitive.height / 2) + routingRadius
+        return {
+          minX: primitive.center.x - radius,
+          minY: primitive.center.y - radius,
+          maxX: primitive.center.x + radius,
+          maxY: primitive.center.y + radius,
+        }
+      },
+    )
+  }
+
   private addObstacleRootId(params: {
     rootIdsByCell: Array<ObstacleRootId[] | undefined>
     cellIndex: number
@@ -1526,7 +1596,14 @@ export class HighDensitySolverB01 extends BaseSolver {
             y: this.cellCenterY[params.toCellId]!,
           })
 
-    for (const obstacleTrace of this.obstacleTracePrimitives) {
+    const minX = Math.min(segmentStart.x, segmentEnd.x)
+    const minY = Math.min(segmentStart.y, segmentEnd.y)
+    const maxX = Math.max(segmentStart.x, segmentEnd.x)
+    const maxY = Math.max(segmentStart.y, segmentEnd.y)
+    const traceCandidates =
+      this.obstacleTraceSpatialIndex?.search(minX, minY, maxX, maxY) ?? []
+    for (const index of traceCandidates) {
+      const obstacleTrace = this.obstacleTracePrimitives[index]!
       if (
         obstacleTrace.layer !== params.layer ||
         this.obstacleRootNames[obstacleTrace.rootId] ===
@@ -1551,7 +1628,10 @@ export class HighDensitySolverB01 extends BaseSolver {
       }
     }
 
-    for (const obstacleVia of this.obstacleViaPrimitives) {
+    const viaCandidates =
+      this.obstacleViaSpatialIndex?.search(minX, minY, maxX, maxY) ?? []
+    for (const index of viaCandidates) {
+      const obstacleVia = this.obstacleViaPrimitives[index]!
       if (
         !obstacleVia.layers.includes(params.layer) ||
         this.obstacleRootNames[obstacleVia.rootId] === activeRootConnectionName
@@ -1574,7 +1654,10 @@ export class HighDensitySolverB01 extends BaseSolver {
       }
     }
 
-    for (const obstacleRect of this.obstacleRectPrimitives) {
+    const rectCandidates =
+      this.obstacleRectSpatialIndex?.search(minX, minY, maxX, maxY) ?? []
+    for (const index of rectCandidates) {
+      const obstacleRect = this.obstacleRectPrimitives[index]!
       if (
         !obstacleRect.layers.includes(params.layer) ||
         this.obstacleRootNames[obstacleRect.rootId] === activeRootConnectionName
@@ -1605,7 +1688,15 @@ export class HighDensitySolverB01 extends BaseSolver {
       y: this.cellCenterY[params.cellId]!,
     })
 
-    for (const obstacleTrace of this.obstacleTracePrimitives) {
+    const traceCandidates =
+      this.obstacleTraceSpatialIndex?.search(
+        center.x,
+        center.y,
+        center.x,
+        center.y,
+      ) ?? []
+    for (const index of traceCandidates) {
+      const obstacleTrace = this.obstacleTracePrimitives[index]!
       if (
         this.obstacleRootNames[obstacleTrace.rootId] ===
         activeRootConnectionName
@@ -1628,7 +1719,15 @@ export class HighDensitySolverB01 extends BaseSolver {
       }
     }
 
-    for (const obstacleVia of this.obstacleViaPrimitives) {
+    const viaCandidates =
+      this.obstacleViaSpatialIndex?.search(
+        center.x,
+        center.y,
+        center.x,
+        center.y,
+      ) ?? []
+    for (const index of viaCandidates) {
+      const obstacleVia = this.obstacleViaPrimitives[index]!
       if (
         this.obstacleRootNames[obstacleVia.rootId] === activeRootConnectionName
       ) {
@@ -1647,7 +1746,15 @@ export class HighDensitySolverB01 extends BaseSolver {
       }
     }
 
-    for (const obstacleRect of this.obstacleRectPrimitives) {
+    const rectCandidates =
+      this.obstacleRectSpatialIndex?.search(
+        center.x,
+        center.y,
+        center.x,
+        center.y,
+      ) ?? []
+    for (const index of rectCandidates) {
+      const obstacleRect = this.obstacleRectPrimitives[index]!
       if (
         this.obstacleRootNames[obstacleRect.rootId] === activeRootConnectionName
       ) {
