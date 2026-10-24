@@ -24,7 +24,8 @@ function countWrites(
         return typeof value === "function" ? value.bind(target) : value
       },
       set(target, property, value) {
-        if (typeof property === "string" && /^\d+$/.test(property)) counter.writes++
+        if (typeof property === "string" && /^\d+$/.test(property))
+          counter.writes++
         return Reflect.set(target, property, value, target)
       },
     })

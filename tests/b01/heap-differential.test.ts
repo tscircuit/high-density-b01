@@ -5,13 +5,40 @@ import { SwapTypedMinHeap } from "../fixtures/SwapTypedMinHeap"
 test("B01 hole sifts preserve every active heap slot and pop across ties, wrapping and growth", (): void => {
   const actual = createB01Heap()
   const reference = new SwapTypedMinHeap()
-  const priorities = [NaN, Infinity, -Infinity, 0, -0, 1, -1, Number.MIN_VALUE, -Number.MIN_VALUE, Number.MAX_VALUE]
-  const sequences = [0, -0, 1, 1, -1, 2 ** 32 - 1, 2 ** 32, 2 ** 32 + 1, 2 ** 53 - 1, 1.75, -1.75, NaN, Infinity]
+  const priorities = [
+    NaN,
+    Infinity,
+    -Infinity,
+    0,
+    -0,
+    1,
+    -1,
+    Number.MIN_VALUE,
+    -Number.MIN_VALUE,
+    Number.MAX_VALUE,
+  ]
+  const sequences = [
+    0,
+    -0,
+    1,
+    1,
+    -1,
+    2 ** 32 - 1,
+    2 ** 32,
+    2 ** 32 + 1,
+    2 ** 53 - 1,
+    1.75,
+    -1.75,
+    NaN,
+    Infinity,
+  ]
   let randomState = 314159265
   const assertSlots = (): void => {
     expect(actual.size).toBe(reference.size)
     for (const field of ["seq", "id"] as const) {
-      expect(actual[field].subarray(0, actual.size)).toEqual(reference[field].subarray(0, reference.size))
+      expect(actual[field].subarray(0, actual.size)).toEqual(
+        reference[field].subarray(0, reference.size),
+      )
     }
     // Compare priorities explicitly because typed-array equality rejects NaNs.
     for (let index = 0; index < actual.size; index++) {
@@ -38,7 +65,10 @@ test("B01 hole sifts preserve every active heap slot and pop across ties, wrappi
     if (operation % 997 === 0) {
       actual.clear()
       reference.clear()
-    } else if (reference.size > 0 && (randomState % 3 === 0 || reference.size >= 256)) {
+    } else if (
+      reference.size > 0 &&
+      (randomState % 3 === 0 || reference.size >= 256)
+    ) {
       expect(actual.pop()).toBe(reference.pop())
     } else {
       const priority = priorities[randomState % priorities.length]!

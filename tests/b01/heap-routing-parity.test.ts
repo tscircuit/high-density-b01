@@ -14,7 +14,9 @@ test("B01 hole sifts preserve real routing pops, iterations and copper for fixed
         ...defaultB01Params,
         nodeWithPortPoints: {
           ...sample.nodeWithPortPoints,
-          portPoints: sample.nodeWithPortPoints.portPoints.filter((point) => names.has(point.connectionName)),
+          portPoints: sample.nodeWithPortPoints.portPoints.filter((point) =>
+            names.has(point.connectionName),
+          ),
         },
         obstacles: sample.obstacles,
         maxCellCount: 200_000,
@@ -24,7 +26,8 @@ test("B01 hole sifts preserve real routing pops, iterations and copper for fixed
       const reference = new HighDensitySolverB01(structuredClone(props))
       actual.setup()
       reference.setup()
-      reference["heap"] = new SwapTypedMinHeap() as unknown as HighDensitySolverB01["heap"]
+      reference["heap"] =
+        new SwapTypedMinHeap() as unknown as HighDensitySolverB01["heap"]
       const pops: number[][] = [[], []]
       for (const [index, solver] of [actual, reference].entries()) {
         const heap = solver["heap"]
