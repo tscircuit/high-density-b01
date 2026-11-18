@@ -18,6 +18,7 @@ export type HighDensityRouteObstacle = {
 
 export type HighDensityRectObstacle = {
   type: "rect"
+  shape?: "rect" | "circle"
   connectionName: string
   rootConnectionName?: string
   center: { x: number; y: number }

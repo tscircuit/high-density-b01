@@ -319,6 +319,7 @@ type ObstacleViaPrimitive = {
 
 type ObstacleRectPrimitive = {
   rootId: ObstacleRootId
+  shape?: "rect" | "circle"
   center: Point2d
   width: number
   height: number
@@ -1207,6 +1208,7 @@ export class HighDensitySolverB01 extends BaseSolver {
     )
     const primitive: ObstacleRectPrimitive = {
       rootId: obstacleRootId,
+      shape: obstacle.shape,
       center: obstacle.center,
       width: obstacle.width,
       height: obstacle.height,
@@ -1216,10 +1218,10 @@ export class HighDensitySolverB01 extends BaseSolver {
     this.obstacleRectPrimitives.push(primitive)
 
     const gridCenter = this.transformBoundsPointToGrid(obstacle.center)
-    const boundingRadiusInBounds = Math.hypot(
-      obstacle.width / 2,
-      obstacle.height / 2,
-    )
+    const boundingRadiusInBounds =
+      obstacle.shape === "circle"
+        ? obstacle.width / 2
+        : Math.hypot(obstacle.width / 2, obstacle.height / 2)
     const traceRadius = this.getConservativeGridRadius(
       boundingRadiusInBounds + this.traceThickness / 2 + this.traceMargin,
     )
@@ -1519,7 +1521,10 @@ export class HighDensitySolverB01 extends BaseSolver {
       (primitive) => {
         // The circumscribed circle contains a rectangle at every rotation.
         const radius =
-          Math.hypot(primitive.width / 2, primitive.height / 2) + routingRadius
+          (primitive.shape === "circle"
+            ? primitive.width / 2
+            : Math.hypot(primitive.width / 2, primitive.height / 2)) +
+          routingRadius
         return {
           minX: primitive.center.x - radius,
           minY: primitive.center.y - radius,
@@ -1664,6 +1669,22 @@ export class HighDensitySolverB01 extends BaseSolver {
       ) {
         continue
       }
+      if (obstacleRect.shape === "circle") {
+        const requiredDistance =
+          obstacleRect.width / 2 +
+          this.traceThickness / 2 +
+          this.obstacleClearanceMargin
+        if (
+          getSquaredDistanceFromPointToSegment({
+            point: obstacleRect.center,
+            segmentStart,
+            segmentEnd,
+          }) <
+          requiredDistance * requiredDistance
+        )
+          return true
+        continue
+      }
       if (
         doesCapsuleIntersectRect({
           segmentStart: transformPointToRectLocal(segmentStart, obstacleRect),
@@ -1758,6 +1779,19 @@ export class HighDensitySolverB01 extends BaseSolver {
       if (
         this.obstacleRootNames[obstacleRect.rootId] === activeRootConnectionName
       ) {
+        continue
+      }
+      if (obstacleRect.shape === "circle") {
+        const requiredDistance =
+          obstacleRect.width / 2 +
+          this.viaDiameter / 2 +
+          this.obstacleClearanceMargin
+        if (
+          (center.x - obstacleRect.center.x) ** 2 +
+            (center.y - obstacleRect.center.y) ** 2 <
+          requiredDistance * requiredDistance
+        )
+          return true
         continue
       }
       const localCenter = transformPointToRectLocal(center, obstacleRect)
@@ -3180,6 +3214,16 @@ export class HighDensitySolverB01 extends BaseSolver {
 
     for (const obstacle of this.obstacles) {
       if (obstacle.type === "rect") {
+        if (obstacle.shape === "circle") {
+          circles.push({
+            center: obstacle.center,
+            radius: obstacle.width / 2,
+            fill: "rgba(128,0,128,0.12)",
+            stroke: "purple",
+            label: `fixed obstacle ${obstacle.connectionName}`,
+          })
+          continue
+        }
         rects.push({
           center: obstacle.center,
           width: obstacle.width,
