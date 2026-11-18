@@ -3387,10 +3387,36 @@ export class HighDensitySolverB01 extends BaseSolver {
           const aliasPoints = (
             alias.reversedFromCanonical ? [...points].reverse() : points
           ).map((point) => ({ ...point }))
-          if (aliasPoints.length > 0) {
-            aliasPoints[0] = { ...alias.startPoint }
-            if (aliasPoints.length > 1) {
-              aliasPoints[aliasPoints.length - 1] = { ...alias.endPoint }
+          const firstPoint = aliasPoints[0]
+          const secondPoint = aliasPoints[1]
+          if (firstPoint) {
+            // A terminal can share a grid cell with a via without sharing
+            // its exact coordinates. Retain the via and add its lead-in.
+            if (
+              secondPoint &&
+              firstPoint.z !== secondPoint.z &&
+              (firstPoint.x !== alias.startPoint.x ||
+                firstPoint.y !== alias.startPoint.y)
+            ) {
+              aliasPoints.unshift({ ...alias.startPoint })
+            } else {
+              aliasPoints[0] = { ...alias.startPoint }
+            }
+          }
+          const lastIndex = aliasPoints.length - 1
+          const lastPoint = aliasPoints[lastIndex]
+          const precedingPoint = aliasPoints[lastIndex - 1]
+          if (lastPoint) {
+            if (
+              aliasPoints.length === 1 ||
+              (precedingPoint &&
+                precedingPoint.z !== lastPoint.z &&
+                (lastPoint.x !== alias.endPoint.x ||
+                  lastPoint.y !== alias.endPoint.y))
+            ) {
+              aliasPoints.push({ ...alias.endPoint })
+            } else {
+              aliasPoints[lastIndex] = { ...alias.endPoint }
             }
           }
           result.push({
