@@ -1198,11 +1198,14 @@ export class HighDensitySolverB01 extends BaseSolver {
     ) {
       return `Rect obstacle ${obstacleIndex} must have finite geometry and positive dimensions`
     }
+    const { traceClearanceMargin, viaClearanceMargin } = obstacle
     if (
-      !Number.isFinite(obstacle.traceClearanceMargin ?? 0) ||
-      !Number.isFinite(obstacle.viaClearanceMargin ?? 0)
+      !Number.isFinite(traceClearanceMargin ?? 0) ||
+      !Number.isFinite(viaClearanceMargin ?? 0) ||
+      (traceClearanceMargin ?? 0) < 0 ||
+      (viaClearanceMargin ?? 0) < 0
     ) {
-      return `Rect obstacle ${obstacleIndex} must have finite clearances`
+      return `Rect obstacle ${obstacleIndex} must have finite, non-negative clearances`
     }
     const layers: number[] = []
     for (const z of obstacle.zLayers) {
@@ -1228,10 +1231,10 @@ export class HighDensitySolverB01 extends BaseSolver {
       layers,
       traceCollisionRadius:
         this.traceThickness / 2 +
-        (obstacle.traceClearanceMargin ?? this.obstacleClearanceMargin),
+        (traceClearanceMargin ?? this.obstacleClearanceMargin),
       viaCollisionRadius:
         this.viaDiameter / 2 +
-        (obstacle.viaClearanceMargin ?? this.obstacleClearanceMargin),
+        (viaClearanceMargin ?? this.obstacleClearanceMargin),
     }
     this.obstacleRectPrimitives.push(primitive)
 
@@ -1243,7 +1246,7 @@ export class HighDensitySolverB01 extends BaseSolver {
     // Keep the existing raster hints and widen them for larger clearance rules.
     let traceExtent =
       boundingRadiusInBounds + this.traceThickness / 2 + this.traceMargin
-    if (obstacle.traceClearanceMargin !== undefined) {
+    if (traceClearanceMargin !== undefined) {
       traceExtent = Math.max(
         traceExtent,
         boundingRadiusInBounds + Math.abs(primitive.traceCollisionRadius),
@@ -1267,7 +1270,7 @@ export class HighDensitySolverB01 extends BaseSolver {
 
     let viaExtent =
       boundingRadiusInBounds + this.viaDiameter / 2 + this.traceMargin
-    if (obstacle.viaClearanceMargin !== undefined) {
+    if (viaClearanceMargin !== undefined) {
       viaExtent = Math.max(
         viaExtent,
         boundingRadiusInBounds + Math.abs(primitive.viaCollisionRadius),
