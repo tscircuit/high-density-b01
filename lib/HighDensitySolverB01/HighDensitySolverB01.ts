@@ -324,6 +324,8 @@ type ObstacleRectPrimitive = {
   height: number
   rotationRadians: number
   layers: number[]
+  traceCollisionRadius: number
+  viaCollisionRadius: number
 }
 
 function createObstacleSpatialIndex<T>(
@@ -1190,6 +1192,12 @@ export class HighDensitySolverB01 extends BaseSolver {
     ) {
       return `Rect obstacle ${obstacleIndex} must have finite geometry and positive dimensions`
     }
+    if (
+      !Number.isFinite(obstacle.traceClearanceMargin ?? 0) ||
+      !Number.isFinite(obstacle.viaClearanceMargin ?? 0)
+    ) {
+      return `Rect obstacle ${obstacleIndex} must have finite clearances`
+    }
     const layers: number[] = []
     for (const z of obstacle.zLayers) {
       const layer = this.zToLayer.get(z)
@@ -1212,6 +1220,12 @@ export class HighDensitySolverB01 extends BaseSolver {
       height: obstacle.height,
       rotationRadians: ((obstacle.ccwRotationDegrees ?? 0) * Math.PI) / 180,
       layers,
+      traceCollisionRadius:
+        this.traceThickness / 2 +
+        (obstacle.traceClearanceMargin ?? this.obstacleClearanceMargin),
+      viaCollisionRadius:
+        this.viaDiameter / 2 +
+        (obstacle.viaClearanceMargin ?? this.obstacleClearanceMargin),
     }
     this.obstacleRectPrimitives.push(primitive)
 
@@ -1220,9 +1234,16 @@ export class HighDensitySolverB01 extends BaseSolver {
       obstacle.width / 2,
       obstacle.height / 2,
     )
-    const traceRadius = this.getConservativeGridRadius(
-      boundingRadiusInBounds + this.traceThickness / 2 + this.traceMargin,
-    )
+    // Keep the existing raster hints and widen them for larger clearance rules.
+    let traceExtent =
+      boundingRadiusInBounds + this.traceThickness / 2 + this.traceMargin
+    if (obstacle.traceClearanceMargin !== undefined) {
+      traceExtent = Math.max(
+        traceExtent,
+        boundingRadiusInBounds + Math.abs(primitive.traceCollisionRadius),
+      )
+    }
+    const traceRadius = this.getConservativeGridRadius(traceExtent)
     this.forEachCellNearCircle(
       gridCenter.x,
       gridCenter.y,
@@ -1238,9 +1259,15 @@ export class HighDensitySolverB01 extends BaseSolver {
       },
     )
 
-    const viaRadius = this.getConservativeGridRadius(
-      boundingRadiusInBounds + this.viaDiameter / 2 + this.traceMargin,
-    )
+    let viaExtent =
+      boundingRadiusInBounds + this.viaDiameter / 2 + this.traceMargin
+    if (obstacle.viaClearanceMargin !== undefined) {
+      viaExtent = Math.max(
+        viaExtent,
+        boundingRadiusInBounds + Math.abs(primitive.viaCollisionRadius),
+      )
+    }
+    const viaRadius = this.getConservativeGridRadius(viaExtent)
     this.forEachCellNearCircle(
       gridCenter.x,
       gridCenter.y,
@@ -1519,7 +1546,11 @@ export class HighDensitySolverB01 extends BaseSolver {
       (primitive) => {
         // The circumscribed circle contains a rectangle at every rotation.
         const radius =
-          Math.hypot(primitive.width / 2, primitive.height / 2) + routingRadius
+          Math.hypot(primitive.width / 2, primitive.height / 2) +
+          Math.max(
+            Math.abs(primitive.traceCollisionRadius),
+            Math.abs(primitive.viaCollisionRadius),
+          )
         return {
           minX: primitive.center.x - radius,
           minY: primitive.center.y - radius,
@@ -1668,7 +1699,7 @@ export class HighDensitySolverB01 extends BaseSolver {
         doesCapsuleIntersectRect({
           segmentStart: transformPointToRectLocal(segmentStart, obstacleRect),
           segmentEnd: transformPointToRectLocal(segmentEnd, obstacleRect),
-          radius: this.traceThickness / 2 + this.obstacleClearanceMargin,
+          radius: obstacleRect.traceCollisionRadius,
           rect: getRectLocalBounds(obstacleRect),
         })
       ) {
@@ -1761,8 +1792,7 @@ export class HighDensitySolverB01 extends BaseSolver {
         continue
       }
       const localCenter = transformPointToRectLocal(center, obstacleRect)
-      const requiredDistance =
-        this.viaDiameter / 2 + this.obstacleClearanceMargin
+      const requiredDistance = obstacleRect.viaCollisionRadius
       if (
         getSquaredDistanceFromPointToRect({
           point: localCenter,
