@@ -25,6 +25,10 @@ export type HighDensityRectObstacle = {
   height: number
   ccwRotationDegrees?: number
   zLayers: number[]
+  /** Non-negative clearance to a routed trace's edge in mm. Defaults to the solver's obstacle clearance. */
+  traceClearanceMargin?: number
+  /** Non-negative clearance to a routed via's edge in mm. Defaults to the solver's obstacle clearance. */
+  viaClearanceMargin?: number
 }
 
 export type HighDensityObstacle =
