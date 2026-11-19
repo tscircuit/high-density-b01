@@ -1,5 +1,8 @@
 import { expect, test } from "bun:test"
-import { HighDensitySolverB01 } from "../../lib/HighDensitySolverB01/HighDensitySolverB01"
+import {
+  HighDensitySolverB01,
+  type HighDensitySolverB01Props,
+} from "../../lib/HighDensitySolverB01/HighDensitySolverB01"
 import type { HighDensityRectObstacle } from "../../lib/obstacle-dataset-types"
 
 test("B01 clears a pad escape with separate trace and via clearances", () => {
@@ -27,7 +30,7 @@ test("B01 clears a pad escape with separate trace and via clearances", () => {
       viaClearanceMargin,
     },
   ]
-  const solver = new HighDensitySolverB01({
+  const props: HighDensitySolverB01Props = {
     nodeWithPortPoints: {
       capacityMeshNodeId: "pad-escape",
       center: { x: 0, y: 0 },
@@ -46,8 +49,16 @@ test("B01 clears a pad escape with separate trace and via clearances", () => {
     traceMargin: 0.15,
     obstacleClearanceMargin: 0.15,
     viaDiameter,
+  }
+  const blockedSolver = new HighDensitySolverB01({
+    ...props,
+    obstacles: pads.map((pad) => ({ ...pad, traceClearanceMargin: undefined })),
   })
+  blockedSolver.solve()
+  expect(blockedSolver.failed).toBe(true)
+  expect(blockedSolver.failureReason).toBe("no_path")
 
+  const solver = new HighDensitySolverB01(props)
   solver.solve()
 
   expect(solver.solved).toBe(true)

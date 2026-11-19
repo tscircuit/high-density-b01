@@ -676,6 +676,12 @@ export class HighDensitySolverB01 extends BaseSolver {
     return "HighDensitySolverB01"
   }
 
+  private _failureReason?: "no_path"
+
+  get failureReason(): "no_path" | undefined {
+    return this._failureReason
+  }
+
   nodeWithPortPoints: NodeWithPortPoints
   obstacles: readonly HighDensityObstacle[]
   highResolutionCellSize: number
@@ -2220,6 +2226,7 @@ export class HighDensitySolverB01 extends BaseSolver {
     }
 
     if (this.heap.size === 0) {
+      this._failureReason = "no_path"
       this.error = `No path found for ${this.connIdToName[this.activeConnId]}`
       this.failed = true
       return
