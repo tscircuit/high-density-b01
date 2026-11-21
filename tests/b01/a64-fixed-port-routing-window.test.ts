@@ -28,7 +28,7 @@ test("routes the A64 DDR window with fixed port positions", async () => {
 
   const { center, height, portPointsInPairs } = input.nodeWithPortPoints
   const graphics = solver.visualize()
-  const text = `${routes.length}/${portPointsInPairs.length} paths · ${solver.iterations.toLocaleString("en-US")} routing steps`
+  const text = `${routes.length}/${portPointsInPairs.length} assigned paths connected`
   // The fixed wires span the board. Frame the routes emitted inside this window.
   const lines = graphics.lines.filter((line) =>
     line.label?.startsWith("B01 route "),
