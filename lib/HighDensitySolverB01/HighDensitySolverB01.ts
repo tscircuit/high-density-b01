@@ -757,6 +757,7 @@ export class HighDensitySolverB01 extends BaseSolver {
   private seqCounter = 0
 
   private _viaOccs: ConnId[] = []
+  private viaOccupantsByCell: (ConnId[] | undefined)[] = []
   private _cellOccs: ConnId[] = []
   private _rippedIds: ConnId[] = []
   private ripCount!: number[]
@@ -1065,6 +1066,7 @@ export class HighDensitySolverB01 extends BaseSolver {
 
     this.activeConnSeg = null
     this.activeConnId = -1
+    this.viaOccupantsByCell = []
     this.nodePool = new TypedNodePool()
     this.heap = new TypedMinHeap()
     this.ripChain = new TypedRipChain()
@@ -2147,6 +2149,8 @@ export class HighDensitySolverB01 extends BaseSolver {
       const next = this.unsolvedSegs.shift()!
       this.activeConnSeg = next
       this.activeConnId = next.connId
+      // Occupancy and net ownership stay fixed for one route search.
+      this.viaOccupantsByCell = []
 
       this.nodePool.clear()
       this.ripChain.clear()
@@ -2450,8 +2454,14 @@ export class HighDensitySolverB01 extends BaseSolver {
   }
 
   private fillViaOccupants(cellId: number, activeConn: ConnId): void {
-    const occs = this._viaOccs
-    occs.length = 0
+    const cachedOccupants = this.viaOccupantsByCell[cellId]
+    if (cachedOccupants) {
+      this._viaOccs = cachedOccupants
+      return
+    }
+    const occs: ConnId[] = []
+    this._viaOccs = occs
+    this.viaOccupantsByCell[cellId] = occs
     const cx = this.cellCenterX[cellId]!
     const cy = this.cellCenterY[cellId]!
     this.forEachCellNearCircle(cx, cy, this.viaKeepoutRadius, (occCellId) => {
