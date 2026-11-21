@@ -4,12 +4,12 @@ exports[`B01 indexed obstacles preserve routing steps and reduce candidates: sam
 [
   {
     "afterSpatialIndex": {
-      "queries": 2145,
-      "returnedObstacleCandidates": 2187,
+      "queries": 35947,
+      "returnedObstacleCandidates": 3890,
     },
     "beforeFullScan": {
-      "queries": 2145,
-      "returnedObstacleCandidates": 229683,
+      "queries": 35947,
+      "returnedObstacleCandidates": 3474675,
     },
     "preservedRouting": {
       "failed": false,
@@ -22,12 +22,12 @@ exports[`B01 indexed obstacles preserve routing steps and reduce candidates: sam
   },
   {
     "afterSpatialIndex": {
-      "queries": 472,
-      "returnedObstacleCandidates": 436,
+      "queries": 2606,
+      "returnedObstacleCandidates": 1183,
     },
     "beforeFullScan": {
-      "queries": 472,
-      "returnedObstacleCandidates": 18343,
+      "queries": 2606,
+      "returnedObstacleCandidates": 94100,
     },
     "preservedRouting": {
       "failed": false,
@@ -40,12 +40,12 @@ exports[`B01 indexed obstacles preserve routing steps and reduce candidates: sam
   },
   {
     "afterSpatialIndex": {
-      "queries": 144,
-      "returnedObstacleCandidates": 268,
+      "queries": 2083,
+      "returnedObstacleCandidates": 847,
     },
     "beforeFullScan": {
-      "queries": 144,
-      "returnedObstacleCandidates": 9504,
+      "queries": 2083,
+      "returnedObstacleCandidates": 137478,
     },
     "preservedRouting": {
       "failed": false,
@@ -58,12 +58,12 @@ exports[`B01 indexed obstacles preserve routing steps and reduce candidates: sam
   },
   {
     "afterSpatialIndex": {
-      "queries": 210,
-      "returnedObstacleCandidates": 193,
+      "queries": 1104,
+      "returnedObstacleCandidates": 518,
     },
     "beforeFullScan": {
-      "queries": 210,
-      "returnedObstacleCandidates": 19130,
+      "queries": 1104,
+      "returnedObstacleCandidates": 95120,
     },
     "preservedRouting": {
       "failed": false,
@@ -76,12 +76,12 @@ exports[`B01 indexed obstacles preserve routing steps and reduce candidates: sam
   },
   {
     "afterSpatialIndex": {
-      "queries": 17,
-      "returnedObstacleCandidates": 18,
+      "queries": 805,
+      "returnedObstacleCandidates": 115,
     },
     "beforeFullScan": {
-      "queries": 17,
-      "returnedObstacleCandidates": 359,
+      "queries": 805,
+      "returnedObstacleCandidates": 13755,
     },
     "preservedRouting": {
       "failed": false,
@@ -94,12 +94,12 @@ exports[`B01 indexed obstacles preserve routing steps and reduce candidates: sam
   },
   {
     "afterSpatialIndex": {
-      "queries": 0,
+      "queries": 956,
       "returnedObstacleCandidates": 0,
     },
     "beforeFullScan": {
-      "queries": 0,
-      "returnedObstacleCandidates": 0,
+      "queries": 956,
+      "returnedObstacleCandidates": 40152,
     },
     "preservedRouting": {
       "failed": false,
@@ -112,12 +112,12 @@ exports[`B01 indexed obstacles preserve routing steps and reduce candidates: sam
   },
   {
     "afterSpatialIndex": {
-      "queries": 6545,
-      "returnedObstacleCandidates": 8423,
+      "queries": 33755,
+      "returnedObstacleCandidates": 11311,
     },
     "beforeFullScan": {
-      "queries": 6545,
-      "returnedObstacleCandidates": 456109,
+      "queries": 33755,
+      "returnedObstacleCandidates": 2197549,
     },
     "preservedRouting": {
       "failed": false,
@@ -130,12 +130,12 @@ exports[`B01 indexed obstacles preserve routing steps and reduce candidates: sam
   },
   {
     "afterSpatialIndex": {
-      "queries": 687,
-      "returnedObstacleCandidates": 990,
+      "queries": 2051,
+      "returnedObstacleCandidates": 1091,
     },
     "beforeFullScan": {
-      "queries": 687,
-      "returnedObstacleCandidates": 22809,
+      "queries": 2051,
+      "returnedObstacleCandidates": 65775,
     },
     "preservedRouting": {
       "failed": false,
@@ -148,12 +148,12 @@ exports[`B01 indexed obstacles preserve routing steps and reduce candidates: sam
   },
   {
     "afterSpatialIndex": {
-      "queries": 145,
-      "returnedObstacleCandidates": 101,
+      "queries": 1339,
+      "returnedObstacleCandidates": 208,
     },
     "beforeFullScan": {
-      "queries": 145,
-      "returnedObstacleCandidates": 9918,
+      "queries": 1339,
+      "returnedObstacleCandidates": 81558,
     },
     "preservedRouting": {
       "failed": false,
@@ -166,12 +166,12 @@ exports[`B01 indexed obstacles preserve routing steps and reduce candidates: sam
   },
   {
     "afterSpatialIndex": {
-      "queries": 229,
-      "returnedObstacleCandidates": 444,
+      "queries": 1005,
+      "returnedObstacleCandidates": 597,
     },
     "beforeFullScan": {
-      "queries": 229,
-      "returnedObstacleCandidates": 24732,
+      "queries": 1005,
+      "returnedObstacleCandidates": 108540,
     },
     "preservedRouting": {
       "failed": false,
@@ -184,12 +184,12 @@ exports[`B01 indexed obstacles preserve routing steps and reduce candidates: sam
   },
   {
     "afterSpatialIndex": {
-      "queries": 2714,
-      "returnedObstacleCandidates": 4411,
+      "queries": 12254,
+      "returnedObstacleCandidates": 6438,
     },
     "beforeFullScan": {
-      "queries": 2714,
-      "returnedObstacleCandidates": 296031,
+      "queries": 12254,
+      "returnedObstacleCandidates": 1226181,
     },
     "preservedRouting": {
       "failed": false,
@@ -202,12 +202,12 @@ exports[`B01 indexed obstacles preserve routing steps and reduce candidates: sam
   },
   {
     "afterSpatialIndex": {
-      "queries": 171,
-      "returnedObstacleCandidates": 279,
+      "queries": 747,
+      "returnedObstacleCandidates": 360,
     },
     "beforeFullScan": {
-      "queries": 171,
-      "returnedObstacleCandidates": 8332,
+      "queries": 747,
+      "returnedObstacleCandidates": 33964,
     },
     "preservedRouting": {
       "failed": false,

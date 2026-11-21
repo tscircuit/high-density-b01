@@ -1543,20 +1543,6 @@ export class HighDensitySolverB01 extends BaseSolver {
     pushUnique(obstacleRootIds, params.obstacleRootId)
   }
 
-  private isBlockedByObstacleRoots(
-    obstacleRootIds: ObstacleRootId[] | undefined,
-    activeConn: ConnId,
-  ): boolean {
-    if (!obstacleRootIds) return false
-    const activeRootConnectionName = this.connIdToRootNet[activeConn]
-    for (const obstacleRootId of obstacleRootIds) {
-      if (this.obstacleRootNames[obstacleRootId] !== activeRootConnectionName) {
-        return true
-      }
-    }
-    return false
-  }
-
   private hasSameRootObstacle(
     obstacleRootIds: ObstacleRootId[] | undefined,
     activeConn: ConnId,
@@ -2336,16 +2322,10 @@ export class HighDensitySolverB01 extends BaseSolver {
     let ripCount = currentRipCount
     const toFlatIdx = toZ * this.planeSize + toCellId
 
-    const obstacleRootIds = isVia
-      ? this.obstacleViaRootIdsByCell[toCellId]
-      : [
-          ...(this.obstacleTraceRootIdsFlat[
-            toZ * this.planeSize + fromCellId
-          ] ?? []),
-          ...(this.obstacleTraceRootIdsFlat[toFlatIdx] ?? []),
-        ]
+    // Terminal moves use their exact anchors, and obstacle clearance can exceed
+    // traceMargin. The cell footprints only describe the same-net cost bonus.
     const isBlockedByObstacle =
-      this.isBlockedByObstacleRoots(obstacleRootIds, activeConn) &&
+      this.obstacles.length > 0 &&
       (isVia
         ? this.isViaMoveBlockedByObstacleGeometry({
             activeConn,
@@ -2363,6 +2343,14 @@ export class HighDensitySolverB01 extends BaseSolver {
       this._moveRipCount = ripCount
       return
     }
+    const obstacleRootIds = isVia
+      ? this.obstacleViaRootIdsByCell[toCellId]
+      : [
+          ...(this.obstacleTraceRootIdsFlat[
+            toZ * this.planeSize + fromCellId
+          ] ?? []),
+          ...(this.obstacleTraceRootIdsFlat[toFlatIdx] ?? []),
+        ]
     const usesSameRootObstacle = this.hasSameRootObstacle(
       obstacleRootIds,
       activeConn,

@@ -10,8 +10,9 @@ test("iCEPi DDR repair starts inside the clearance around a foreign wire", async
   const { solver, graphics, violationCount } = solveFixedWireClearanceCase(
     input as FixedWireClearanceCase,
   )
-  expect(solver.solved).toBe(true)
-  expect(solver.getOutput()).toHaveLength(1)
-  expect(violationCount).toBeGreaterThan(0)
+  expect(solver.failed).toBe(true)
+  expect(solver.error).toBe("No path found for source_net_16")
+  expect(solver.getOutput()).toHaveLength(0)
+  expect(violationCount).toBe(0)
   await expect(graphics).toMatchGraphicsSvg(import.meta.path)
 })

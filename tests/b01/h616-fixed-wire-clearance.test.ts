@@ -12,6 +12,6 @@ test("H616 routes beside a fixed DDR wire at the requested clearance", async ():
   )
   expect(solver.solved).toBe(true)
   expect(solver.getOutput()).toHaveLength(1)
-  expect(violationCount).toBeGreaterThan(0)
+  expect(violationCount).toBe(0)
   await expect(graphics).toMatchGraphicsSvg(import.meta.path)
 })
