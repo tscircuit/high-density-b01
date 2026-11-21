@@ -1,4 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1110" height="555" viewBox="0 0 1110 555">
+  <metadata>Board geometry adapted from OLIMEX Ltd. OLINUXINO hardware under CC BY-SA 3.0 US (https://creativecommons.org/licenses/by-sa/3.0/us/).</metadata>
   <rect width="1110" height="555" fill="white"/>
   <g font-family="sans-serif" fill="#172033">
     <text x="20" y="32" font-size="23">Allwinner A64 DDR routing window</text>
