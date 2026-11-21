@@ -48,7 +48,7 @@ test("checks through-via clearance at the fixed STM32MP157 top-layer ports", asy
       x: center.x,
       y: center.y - height / 2 + 0.2,
       fontSize: 0.1,
-      text: `${solver.iterations.toLocaleString("en-US")} routing steps`,
+      text: `Fixed-port clearance violations · ${conflictingVias.length}`,
     },
     {
       x: center.x,
