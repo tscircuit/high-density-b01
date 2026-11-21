@@ -1,0 +1,5 @@
+# DDR routing window sources
+
+The A64 and STM32MP157 routing fixtures, board overviews, and SVG snapshots derive from OLIMEX Ltd.’s A64-OLinuXino revision H and STMP157-OLinuXino-LIME2 revision B1. These board-derived files retain the Creative Commons Attribution-ShareAlike 3.0 United States license. [Original hardware designs](https://github.com/OLIMEX/OLINUXINO/tree/85eee9c17ee13af65617d73bdd94de7ec49cfb42/HARDWARE) · [License](https://creativecommons.org/licenses/by-sa/3.0/us/)
+
+The benchmark converts the original DDR layout into TSX circuit inputs. The tests capture B01’s input for an assigned routing window. The A64 capture retains all 12 assigned paths. The STM32MP157 capture is reduced to two endpoint pairs and two fixed wires. The overviews show the pads and fixed bus-lane copper emitted by tscircuit. [Benchmark manifest](https://github.com/ShiboSoftwareDev/core-ddr-benchmark/blob/24dc44c166d4258c3538f8b1f66953f1b6f58690/manifest.json) · [Source notices](https://github.com/ShiboSoftwareDev/core-ddr-benchmark/blob/24dc44c166d4258c3538f8b1f66953f1b6f58690/LICENSE)
