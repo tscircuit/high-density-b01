@@ -13,8 +13,8 @@ test("routes the A64 DDR window with fixed port positions", async () => {
   solver.solve()
 
   const routes = solver.getOutput()
-  expect(solver.failed).toBeTrue()
-  expect(routes).toHaveLength(8)
+  expect(solver.solved).toBeTrue()
+  expect(routes).toHaveLength(input.nodeWithPortPoints.portPointsInPairs.length)
   const routedNames = new Set(routes.map((route) => route.connectionName))
   const clearanceChecks = [...input.obstacles, ...routes].map((route) => ({
     ...route,

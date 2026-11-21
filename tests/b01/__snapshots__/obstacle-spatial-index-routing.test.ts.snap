@@ -112,12 +112,12 @@ exports[`B01 indexed obstacles preserve routing steps and reduce candidates: sam
   },
   {
     "afterSpatialIndex": {
-      "queries": 6545,
-      "returnedObstacleCandidates": 8423,
+      "queries": 6517,
+      "returnedObstacleCandidates": 8417,
     },
     "beforeFullScan": {
-      "queries": 6545,
-      "returnedObstacleCandidates": 456109,
+      "queries": 6517,
+      "returnedObstacleCandidates": 454317,
     },
     "preservedRouting": {
       "failed": false,
@@ -184,12 +184,12 @@ exports[`B01 indexed obstacles preserve routing steps and reduce candidates: sam
   },
   {
     "afterSpatialIndex": {
-      "queries": 2714,
-      "returnedObstacleCandidates": 4411,
+      "queries": 2632,
+      "returnedObstacleCandidates": 4312,
     },
     "beforeFullScan": {
-      "queries": 2714,
-      "returnedObstacleCandidates": 296031,
+      "queries": 2632,
+      "returnedObstacleCandidates": 286353,
     },
     "preservedRouting": {
       "failed": false,
