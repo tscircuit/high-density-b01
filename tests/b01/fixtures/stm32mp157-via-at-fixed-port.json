@@ -1,0 +1,155 @@
+{
+  "nodeWithPortPoints": {
+    "capacityMeshNodeId": "topology_merge_6816__sub_0_0",
+    "center": {
+      "x": -9.879999999999994,
+      "y": -1.6923750000000017
+    },
+    "width": 0.5,
+    "height": 2.6392499999999974,
+    "portPoints": [
+      {
+        "portPointId": "ce21923_pp0_z3::3",
+        "x": -9.629999999999994,
+        "y": -1.0325625000000012,
+        "z": 3,
+        "connectionName": "source_net_19_mst2",
+        "rootConnectionName": "connectivity_net20",
+        "nextPortPointId": "ce21922_preloadgap0_z7::7"
+      },
+      {
+        "portPointId": "ce21922_preloadgap0_z7::7",
+        "x": -9.629999999999992,
+        "y": -1.2663948775786231,
+        "z": 7,
+        "connectionName": "source_net_19_mst2",
+        "rootConnectionName": "connectivity_net20",
+        "prevPortPointId": "ce21923_pp0_z3::3"
+      },
+      {
+        "portPointId": "ce21914_pp5_z0::0",
+        "x": -10.129999999999992,
+        "y": -1.0325625000000023,
+        "z": 0,
+        "connectionName": "source_net_1_mst2",
+        "rootConnectionName": "connectivity_net38",
+        "nextPortPointId": "ce21922_pp1_z0::0"
+      },
+      {
+        "portPointId": "ce21922_pp1_z0::0",
+        "x": -9.629999999999994,
+        "y": -1.6923750000000004,
+        "z": 0,
+        "connectionName": "source_net_1_mst2",
+        "rootConnectionName": "connectivity_net38",
+        "prevPortPointId": "ce21914_pp5_z0::0"
+      }
+    ],
+    "portPointsInPairs": [
+      [
+        {
+          "portPointId": "ce21923_pp0_z3::3",
+          "x": -9.629999999999994,
+          "y": -1.0325625000000012,
+          "z": 3,
+          "connectionName": "source_net_19_mst2",
+          "rootConnectionName": "connectivity_net20",
+          "nextPortPointId": "ce21922_preloadgap0_z7::7"
+        },
+        {
+          "portPointId": "ce21922_preloadgap0_z7::7",
+          "x": -9.629999999999992,
+          "y": -1.2663948775786231,
+          "z": 7,
+          "connectionName": "source_net_19_mst2",
+          "rootConnectionName": "connectivity_net20",
+          "prevPortPointId": "ce21923_pp0_z3::3"
+        }
+      ],
+      [
+        {
+          "portPointId": "ce21914_pp5_z0::0",
+          "x": -10.129999999999992,
+          "y": -1.0325625000000023,
+          "z": 0,
+          "connectionName": "source_net_1_mst2",
+          "rootConnectionName": "connectivity_net38",
+          "nextPortPointId": "ce21922_pp1_z0::0"
+        },
+        {
+          "portPointId": "ce21922_pp1_z0::0",
+          "x": -9.629999999999994,
+          "y": -1.6923750000000004,
+          "z": 0,
+          "connectionName": "source_net_1_mst2",
+          "rootConnectionName": "connectivity_net38",
+          "prevPortPointId": "ce21914_pp5_z0::0"
+        }
+      ]
+    ],
+    "availableZ": [0, 1, 2, 3, 4, 5, 6, 7]
+  },
+  "obstacles": [
+    {
+      "type": "route",
+      "connectionName": "source_net_26_fixed_12_3",
+      "rootConnectionName": "connectivity_net97",
+      "traceThickness": 0.127,
+      "viaDiameter": 0.327,
+      "route": [
+        {
+          "x": -9.722000000000001,
+          "y": -1.547500000000003,
+          "z": 7
+        },
+        {
+          "x": -9.722000000000001,
+          "y": -2.5635000000000012,
+          "z": 7
+        }
+      ],
+      "vias": []
+    },
+    {
+      "type": "route",
+      "connectionName": "source_net_37_fixed_19_6",
+      "rootConnectionName": "connectivity_net482",
+      "traceThickness": 0.127,
+      "viaDiameter": 0.327,
+      "route": [
+        {
+          "x": -9.129999999999994,
+          "y": 0.4415000000000102,
+          "z": 5
+        },
+        {
+          "x": -10.629999999999994,
+          "y": -1.0584999999999898,
+          "z": 5
+        }
+      ],
+      "vias": []
+    }
+  ],
+  "highResolutionCellSize": 0.1,
+  "highResolutionCellThickness": 8,
+  "lowResolutionCellSize": 0.4,
+  "viaDiameter": 0.327,
+  "stepMultiplier": 1,
+  "traceThickness": 0.127,
+  "traceMargin": 0.127,
+  "obstacleClearanceMargin": 0.127,
+  "viaMinDistFromBorder": 0.1635,
+  "showPenaltyMap": false,
+  "showUsedCellMap": false,
+  "effort": 1,
+  "hyperParameters": {
+    "shuffleSeed": 0,
+    "ripCost": 8,
+    "ripTracePenalty": 0.5,
+    "ripViaPenalty": 0.75,
+    "viaBaseCost": 0.1,
+    "greedyMultiplier": 1.5,
+    "sameRootObstacleCostMultiplier": 1
+  }
+}
