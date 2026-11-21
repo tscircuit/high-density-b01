@@ -1,0 +1,64 @@
+{
+  "nodeWithPortPoints": {
+    "capacityMeshNodeId": "pipeline9_trace_pair_repair",
+    "center": {
+      "x": 19.665000000000003,
+      "y": 8.259999999999991
+    },
+    "width": 8.630000000000017,
+    "height": 13.220000000000018,
+    "availableZ": [0, 1, 2, 3],
+    "portPoints": [
+      {
+        "connectionName": "source_net_16",
+        "rootConnectionName": "connectivity_net17",
+        "x": 17.299999999999994,
+        "y": 2.9499999999999824,
+        "z": 0,
+        "portPointId": "pipeline9_fallback:source_net_16:start",
+        "nextPortPointId": "pipeline9_fallback:source_net_16:end"
+      },
+      {
+        "connectionName": "source_net_16",
+        "rootConnectionName": "connectivity_net17",
+        "x": 20.130000000000013,
+        "y": 13.019999999999987,
+        "z": 0,
+        "portPointId": "pipeline9_fallback:source_net_16:end",
+        "prevPortPointId": "pipeline9_fallback:source_net_16:start"
+      }
+    ]
+  },
+  "obstacles": [
+    {
+      "type": "route",
+      "connectionName": "source_net_18",
+      "rootConnectionName": "connectivity_net15",
+      "traceThickness": 0.1565,
+      "viaDiameter": 0.45,
+      "route": [
+        {
+          "x": 16.989509352774938,
+          "y": 3.2895093527749273,
+          "z": 0
+        },
+        {
+          "x": 19.75908445956383,
+          "y": 3.2895093527749273,
+          "z": 0
+        }
+      ],
+      "vias": []
+    }
+  ],
+  "highResolutionCellSize": 0.1,
+  "highResolutionCellThickness": 8,
+  "lowResolutionCellSize": 0.1,
+  "traceThickness": 0.124,
+  "traceMargin": 0.1,
+  "obstacleClearanceMargin": 0.2,
+  "viaDiameter": 0.45,
+  "viaMinDistFromBorder": 0.225,
+  "stepMultiplier": 1,
+  "effort": 1
+}

@@ -1,0 +1,84 @@
+{
+  "nodeWithPortPoints": {
+    "capacityMeshNodeId": "pipeline9_trace_pair_repair",
+    "center": {
+      "x": -3.864999999999998,
+      "y": 7.520812676668259
+    },
+    "width": 10.209999999999992,
+    "height": 8.880374646663483,
+    "availableZ": [0, 1, 2, 3],
+    "portPoints": [
+      {
+        "connectionName": "source_net_50",
+        "rootConnectionName": "connectivity_net2",
+        "x": -8.419999999999993,
+        "y": 10.139999999999992,
+        "z": 0,
+        "portPointId": "pipeline9_fallback:source_net_50:start",
+        "nextPortPointId": "pipeline9_fallback:source_net_50:end"
+      },
+      {
+        "connectionName": "source_net_50",
+        "rootConnectionName": "connectivity_net2",
+        "x": 0.6899999999999977,
+        "y": 6.949999999999997,
+        "z": 0,
+        "portPointId": "pipeline9_fallback:source_net_50:end",
+        "prevPortPointId": "pipeline9_fallback:source_net_50:start"
+      }
+    ]
+  },
+  "obstacles": [
+    {
+      "type": "route",
+      "connectionName": "source_net_38_mst1",
+      "rootConnectionName": "connectivity_net14",
+      "traceThickness": 0.093,
+      "viaDiameter": 0.35,
+      "route": [
+        {
+          "x": -8.203615635237746,
+          "y": 9.788467989905874,
+          "z": 0
+        },
+        {
+          "x": -8.185472552833778,
+          "y": 9.939998999999991,
+          "z": 0
+        }
+      ],
+      "vias": []
+    },
+    {
+      "type": "route",
+      "connectionName": "source_net_38_mst1",
+      "rootConnectionName": "connectivity_net14",
+      "traceThickness": 0.093,
+      "viaDiameter": 0.35,
+      "route": [
+        {
+          "x": -8.185472552833778,
+          "y": 9.939998999999991,
+          "z": 0
+        },
+        {
+          "x": -8.219998999999996,
+          "y": 9.741,
+          "z": 0
+        }
+      ],
+      "vias": []
+    }
+  ],
+  "highResolutionCellSize": 0.1,
+  "highResolutionCellThickness": 8,
+  "lowResolutionCellSize": 0.1,
+  "traceThickness": 0.093,
+  "traceMargin": 0.1,
+  "obstacleClearanceMargin": 0.2,
+  "viaDiameter": 0.35,
+  "viaMinDistFromBorder": 0.175,
+  "stepMultiplier": 1,
+  "effort": 1
+}
