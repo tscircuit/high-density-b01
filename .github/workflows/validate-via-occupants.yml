@@ -1,0 +1,23 @@
+name: Validate the final B01 via occupancy cache
+on:
+  push:
+    branches: [analysis/validate-via-occupants-20261121]
+    paths: [.github/workflows/validate-via-occupants.yml]
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: cfe360b2d743cc8f3b97f36a73bed3b5420c95f6
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.3'
+      - run: bun install
+      - run: bun run build
+      - run: bun run format:check
+      - run: bun test
