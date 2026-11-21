@@ -1,0 +1,140 @@
+{
+  "nodeWithPortPoints": {
+    "capacityMeshNodeId": "pipeline9_trace_pair_repair",
+    "center": {
+      "x": 11.508500000000007,
+      "y": 11.06607169364501
+    },
+    "width": 5.743000000000013,
+    "height": 14.00761289300094,
+    "availableZ": [0, 1, 2, 3],
+    "portPoints": [
+      {
+        "x": 10.799999999999995,
+        "y": 4.899999999999983,
+        "z": 0,
+        "traceThickness": 0.124,
+        "pcb_port_id": "pcb_port_164",
+        "portPointId": "pipeline9_fallback:source_net_43:start",
+        "nextPortPointId": "pipeline9_fallback:source_net_43:end",
+        "connectionName": "source_net_43",
+        "rootConnectionName": "connectivity_net6"
+      },
+      {
+        "x": 12.130000000000013,
+        "y": 17.01999999999999,
+        "z": 0,
+        "traceThickness": 0.124,
+        "pcb_port_id": "pcb_port_356",
+        "portPointId": "pipeline9_fallback:source_net_43:end",
+        "prevPortPointId": "pipeline9_fallback:source_net_43:start",
+        "connectionName": "source_net_43",
+        "rootConnectionName": "connectivity_net6"
+      },
+      {
+        "x": 13.730000000000013,
+        "y": 13.819999999999988,
+        "z": 0,
+        "traceThickness": 0.124,
+        "pcb_port_id": "pcb_port_367",
+        "portPointId": "pipeline9_fallback:source_net_39:start",
+        "nextPortPointId": "pipeline9_fallback:source_net_39:end",
+        "connectionName": "source_net_39",
+        "rootConnectionName": "connectivity_net10"
+      },
+      {
+        "x": 9.499999999999995,
+        "y": 4.899999999999983,
+        "z": 0,
+        "traceThickness": 0.124,
+        "pcb_port_id": "pcb_port_130",
+        "portPointId": "pipeline9_fallback:source_net_39:end",
+        "prevPortPointId": "pipeline9_fallback:source_net_39:start",
+        "connectionName": "source_net_39",
+        "rootConnectionName": "connectivity_net10"
+      }
+    ],
+    "portPointsInPairs": [
+      [
+        {
+          "x": 10.799999999999995,
+          "y": 4.899999999999983,
+          "z": 0,
+          "traceThickness": 0.124,
+          "pcb_port_id": "pcb_port_164",
+          "portPointId": "pipeline9_fallback:source_net_43:start",
+          "nextPortPointId": "pipeline9_fallback:source_net_43:end",
+          "connectionName": "source_net_43",
+          "rootConnectionName": "connectivity_net6"
+        },
+        {
+          "x": 12.130000000000013,
+          "y": 17.01999999999999,
+          "z": 0,
+          "traceThickness": 0.124,
+          "pcb_port_id": "pcb_port_356",
+          "portPointId": "pipeline9_fallback:source_net_43:end",
+          "prevPortPointId": "pipeline9_fallback:source_net_43:start",
+          "connectionName": "source_net_43",
+          "rootConnectionName": "connectivity_net6"
+        }
+      ],
+      [
+        {
+          "x": 13.730000000000013,
+          "y": 13.819999999999988,
+          "z": 0,
+          "traceThickness": 0.124,
+          "pcb_port_id": "pcb_port_367",
+          "portPointId": "pipeline9_fallback:source_net_39:start",
+          "nextPortPointId": "pipeline9_fallback:source_net_39:end",
+          "connectionName": "source_net_39",
+          "rootConnectionName": "connectivity_net10"
+        },
+        {
+          "x": 9.499999999999995,
+          "y": 4.899999999999983,
+          "z": 0,
+          "traceThickness": 0.124,
+          "pcb_port_id": "pcb_port_130",
+          "portPointId": "pipeline9_fallback:source_net_39:end",
+          "prevPortPointId": "pipeline9_fallback:source_net_39:start",
+          "connectionName": "source_net_39",
+          "rootConnectionName": "connectivity_net10"
+        }
+      ]
+    ]
+  },
+  "highResolutionCellSize": 0.1,
+  "highResolutionCellThickness": 8,
+  "lowResolutionCellSize": 0.1,
+  "viaDiameter": 0.45,
+  "stepMultiplier": 1,
+  "traceThickness": 0.124,
+  "traceMargin": 0.1,
+  "obstacleClearanceMargin": 0.2,
+  "viaMinDistFromBorder": 0.225,
+  "effort": 1,
+  "obstacles": [
+    {
+      "type": "route",
+      "connectionName": "source_net_31_fixed_7_2",
+      "rootConnectionName": "connectivity_net259",
+      "traceThickness": 0.1565,
+      "viaDiameter": 0.45,
+      "route": [
+        {
+          "x": 13.725000000000001,
+          "y": 5.225,
+          "z": 2
+        },
+        {
+          "x": 13.725000000000001,
+          "y": 16.214999999999996,
+          "z": 2
+        }
+      ],
+      "vias": []
+    }
+  ]
+}
