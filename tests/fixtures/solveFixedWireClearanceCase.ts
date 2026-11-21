@@ -36,6 +36,15 @@ export function solveFixedWireClearanceCase(input: FixedWireClearanceCase): {
     4 * input.viaDiameter
   const view = solver.visualize()
   const graphics: GraphicsObject = {
+    rects: [
+      {
+        center: terminal,
+        width: 10 * input.viaDiameter,
+        height: 10 * input.viaDiameter,
+        fill: "transparent",
+        stroke: "none",
+      },
+    ],
     points: [{ ...terminal, color: "#124d65" }],
     lines: [
       ...input.obstacles.map((wire) => ({
