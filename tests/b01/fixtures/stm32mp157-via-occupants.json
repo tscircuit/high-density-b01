@@ -125,16 +125,7 @@
         }
       ]
     ],
-    "availableZ": [
-      0,
-      1,
-      2,
-      3,
-      4,
-      5,
-      6,
-      7
-    ]
+    "availableZ": [0, 1, 2, 3, 4, 5, 6, 7]
   },
   "obstacles": [
     {
@@ -281,7 +272,7 @@
       "type": "route",
       "connectionName": "source_net_43_fixed_25_2",
       "rootConnectionName": "connectivity_net110",
-      "traceThickness": 1e-09,
+      "traceThickness": 1e-9,
       "viaDiameter": 0.327,
       "route": [
         {
@@ -468,7 +459,7 @@
       "type": "route",
       "connectionName": "source_net_44_fixed_31_2",
       "rootConnectionName": "connectivity_net111",
-      "traceThickness": 1e-09,
+      "traceThickness": 1e-9,
       "viaDiameter": 0.327,
       "route": [
         {
@@ -521,9 +512,7 @@
       },
       "width": 0.4,
       "height": 0.4,
-      "zLayers": [
-        7
-      ]
+      "zLayers": [7]
     },
     {
       "type": "rect",
@@ -535,9 +524,7 @@
       },
       "width": 0.4,
       "height": 0.4,
-      "zLayers": [
-        7
-      ]
+      "zLayers": [7]
     },
     {
       "type": "rect",
@@ -549,9 +536,7 @@
       },
       "width": 0.4,
       "height": 0.4,
-      "zLayers": [
-        7
-      ]
+      "zLayers": [7]
     },
     {
       "type": "rect",
@@ -563,9 +548,7 @@
       },
       "width": 0.4,
       "height": 0.4,
-      "zLayers": [
-        7
-      ]
+      "zLayers": [7]
     },
     {
       "type": "rect",
@@ -577,9 +560,7 @@
       },
       "width": 0.4,
       "height": 0.4,
-      "zLayers": [
-        7
-      ]
+      "zLayers": [7]
     },
     {
       "type": "rect",
@@ -591,9 +572,7 @@
       },
       "width": 0.4,
       "height": 0.4,
-      "zLayers": [
-        7
-      ]
+      "zLayers": [7]
     },
     {
       "type": "rect",
@@ -605,9 +584,7 @@
       },
       "width": 0.4,
       "height": 0.4,
-      "zLayers": [
-        7
-      ]
+      "zLayers": [7]
     },
     {
       "type": "rect",
@@ -619,9 +596,7 @@
       },
       "width": 0.4,
       "height": 0.4,
-      "zLayers": [
-        7
-      ]
+      "zLayers": [7]
     },
     {
       "type": "rect",
@@ -633,9 +608,7 @@
       },
       "width": 0.4,
       "height": 0.4,
-      "zLayers": [
-        7
-      ]
+      "zLayers": [7]
     },
     {
       "type": "rect",
@@ -647,9 +620,7 @@
       },
       "width": 0.4,
       "height": 0.4,
-      "zLayers": [
-        7
-      ]
+      "zLayers": [7]
     },
     {
       "type": "rect",
@@ -661,9 +632,7 @@
       },
       "width": 0.4,
       "height": 0.4,
-      "zLayers": [
-        7
-      ]
+      "zLayers": [7]
     }
   ],
   "highResolutionCellSize": 0.1,
