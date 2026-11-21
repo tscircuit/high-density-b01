@@ -72,7 +72,6 @@ export function getFixedWireRasterSnapshot(
         height: node.height,
         fill: "none",
         stroke: "#64748b",
-        strokeWidth: 0.025,
       },
       {
         center: {
@@ -82,7 +81,6 @@ export function getFixedWireRasterSnapshot(
         width: (bounds.maxX - bounds.minX) * Math.abs(transform.a),
         height: (bounds.maxY - bounds.minY) * Math.abs(transform.e),
         fill: "rgba(245, 174, 49, 0.22)",
-        strokeWidth: 0.035,
         stroke: "#b45309",
         label: "Bounds of cells tested for this fixed wire",
       },
