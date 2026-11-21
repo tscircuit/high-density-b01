@@ -1422,6 +1422,11 @@ export class HighDensitySolverB01 extends BaseSolver {
     },
     visitor: (cellId: number) => void,
   ): void {
+    const radius = Math.abs(params.radius)
+    const minX = Math.min(params.segmentStart.x, params.segmentEnd.x) - radius
+    const minY = Math.min(params.segmentStart.y, params.segmentEnd.y) - radius
+    const maxX = Math.max(params.segmentStart.x, params.segmentEnd.x) + radius
+    const maxY = Math.max(params.segmentStart.y, params.segmentEnd.y) + radius
     const midpoint = {
       x: (params.segmentStart.x + params.segmentEnd.x) / 2,
       y: (params.segmentStart.y + params.segmentEnd.y) / 2,
@@ -1438,6 +1443,13 @@ export class HighDensitySolverB01 extends BaseSolver {
       midpoint.y,
       segmentRadius,
       (cellId) => {
+        if (
+          this.cellMaxX[cellId]! < minX ||
+          this.cellMinX[cellId]! > maxX ||
+          this.cellMaxY[cellId]! < minY ||
+          this.cellMinY[cellId]! > maxY
+        )
+          return
         if (
           doesCapsuleIntersectRect({
             segmentStart: params.segmentStart,
