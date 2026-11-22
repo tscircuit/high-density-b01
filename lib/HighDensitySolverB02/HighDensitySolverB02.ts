@@ -320,6 +320,7 @@ export class HighDensitySolverB02 extends BaseSolver {
     )
 
     if (missingPairs.length === 0) {
+      initialRoutes = this.legalizeViaCentersInsideBounds(initialRoutes)
       if (!this.acceptValidatedRoutes(initialRoutes, pairs)) {
         this.fail("Initial B01 result failed exact physical validation")
       }
@@ -350,6 +351,7 @@ export class HighDensitySolverB02 extends BaseSolver {
       repairPairLimit = MAX_CROSS_LAYER_REPAIR_PAIR_COUNT
 
       if (missingPairs.length === 0) {
+        initialRoutes = this.legalizeViaCentersInsideBounds(initialRoutes)
         if (!this.acceptValidatedRoutes(initialRoutes, pairs)) {
           this.fail("Cross-layer initial B01 result failed exact validation")
         }
