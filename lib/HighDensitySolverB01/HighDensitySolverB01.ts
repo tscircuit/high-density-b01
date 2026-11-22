@@ -731,6 +731,7 @@ export class HighDensitySolverB01 extends BaseSolver {
   private usedCellsFlat!: Int32Array
   private sharedCellsFlat!: Array<number[] | undefined>
   private portOwnerFlat!: Int32Array
+  private fixedPortOwnerByViaCell!: Int32Array
   private penalty2d!: Float64Array
   private ripStateBuckets!: number
   private visitedStamp!: Uint32Array
@@ -997,6 +998,7 @@ export class HighDensitySolverB01 extends BaseSolver {
     this.usedCellsFlat = new Int32Array(totalCells).fill(-1)
     this.sharedCellsFlat = Array.from({ length: totalCells }, () => undefined)
     this.portOwnerFlat = new Int32Array(totalCells).fill(-1)
+    this.fixedPortOwnerByViaCell = new Int32Array(this.planeSize).fill(-1)
     this.sharedCrossRootPortFlat = new Uint8Array(totalCells)
     this.obstacleTraceRootIdsFlat = Array.from(
       { length: totalCells },
@@ -1031,6 +1033,7 @@ export class HighDensitySolverB01 extends BaseSolver {
     for (const pp of this.nodeWithPortPoints.portPoints) {
       const connId = this.connNameToId.get(pp.connectionName)
       if (connId === undefined) continue
+      this.reserveViaClearanceForPort(pp, connId)
       const cell = this.pointToCell(pp)
       const flatIdx = cell.z * this.planeSize + cell.cellId
       const rootNet = this.connIdToRootNet[connId]!
@@ -2287,7 +2290,11 @@ export class HighDensitySolverB01 extends BaseSolver {
       this.heap.push(f2, this.seqCounter++, newNodeIdx)
     }
 
-    if (this.viaAllowed[cellId]) {
+    const fixedPortOwner = this.fixedPortOwnerByViaCell[cellId]!
+    if (
+      this.viaAllowed[cellId] &&
+      (fixedPortOwner === -1 || this.allowSharedUse(activeConn, fixedPortOwner))
+    ) {
       for (let nz = 0; nz < this.layers; nz++) {
         if (nz === z) continue
         const nextFlatIdx = nz * this.planeSize + cellId
@@ -2561,6 +2568,41 @@ export class HighDensitySolverB01 extends BaseSolver {
     const sameRoot =
       this.connIdToRootNet[existingConn] === this.connIdToRootNet[activeConn]
     return sameRoot
+  }
+
+  private reserveViaClearanceForPort(port: PortPoint, connId: ConnId): void {
+    const portInGrid = this.transformBoundsPointToGrid(port)
+    const gridRadius = this.getConservativeGridRadius(this.viaKeepoutRadius)
+    this.forEachCellNearCircle(
+      portInGrid.x,
+      portInGrid.y,
+      gridRadius,
+      (cellId) => {
+        if (!this.viaAllowed[cellId]) return
+        const viaCenterInBounds = applyAffineTransformToPoint(
+          this.gridToBoundsTransform,
+          {
+            x: this.cellCenterX[cellId]!,
+            y: this.cellCenterY[cellId]!,
+          },
+        )
+        if (
+          Math.hypot(
+            viaCenterInBounds.x - port.x,
+            viaCenterInBounds.y - port.y,
+          ) >= this.viaKeepoutRadius
+        ) {
+          return
+        }
+
+        const fixedPortOwner = this.fixedPortOwnerByViaCell[cellId]!
+        if (fixedPortOwner === -1) this.fixedPortOwnerByViaCell[cellId] = connId
+        else if (!this.allowSharedUse(connId, fixedPortOwner)) {
+          // A through-via cannot clear fixed endpoints from two different nets.
+          this.fixedPortOwnerByViaCell[cellId] = -2
+        }
+      },
+    )
   }
 
   private shouldSkipFixedPortHalo(flatIdx: number, connId: ConnId) {

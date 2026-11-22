@@ -28,8 +28,9 @@ test("checks through-via clearance at the fixed STM32MP157 top-layer ports", asy
       ),
     )
   expect(solver.failed).toBeTrue()
-  expect(conflictingVias).toHaveLength(1)
-  expect(solver.error).toBe("Convergence failure: exceeded MAX_RIPS 200")
+  expect(conflictingVias).toHaveLength(0)
+  expect(solver.error).toBe("No path found for source_net_19_mst2")
+  expect(solver.iterations).toBeLessThan(200)
 
   const graphics = solver.visualize()
   graphics.points = graphics.points.filter((point) => point.label)

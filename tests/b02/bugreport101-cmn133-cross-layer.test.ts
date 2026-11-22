@@ -102,16 +102,16 @@ test("B02 repairs Bug 101's cross-layer cmn133 node", () => {
   expect(findRouteGeometryViolations(clearanceInflatedRoutes)).toHaveLength(0)
   expect(first.stats).toMatchObject({
     applicable: true,
-    initialRouteCount: 7,
-    missingPairCount: 2,
-    blockerRouteCount: 5,
+    initialRouteCount: 8,
+    missingPairCount: 1,
+    blockerRouteCount: 6,
     repairPairCount: 7,
     alternateInitialSolverCount: 2,
     selectedInitialShuffleSeed: 4,
   })
   expect(first.stats.initialIterations).toBeLessThanOrEqual(350)
-  expect(first.stats.alternateInitialIterations).toBeLessThanOrEqual(550)
-  expect(first.stats.repairIterations).toBeLessThanOrEqual(2_150)
+  expect(first.stats.alternateInitialIterations).toBeLessThanOrEqual(675)
+  expect(first.stats.repairIterations).toBeLessThanOrEqual(1_100)
   expect(second.stats.initialIterations).toBe(first.stats.initialIterations)
   expect(second.stats.alternateInitialIterations).toBe(
     first.stats.alternateInitialIterations,
