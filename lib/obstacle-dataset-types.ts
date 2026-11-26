@@ -1,6 +1,8 @@
 import type { HighDensityRoutePoint, NodeWithPortPoints } from "./types"
 
 export type HighDensityRouteObstacle = {
+  /** Copper outside the routing layers still blocks through-via placement. */
+  viaOnly?: boolean
   type: "route"
   connectionName: string
   rootConnectionName?: string

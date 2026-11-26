@@ -304,7 +304,7 @@ interface NeighborEdge {
 
 type ObstacleTracePrimitive = {
   rootId: ObstacleRootId
-  layer: number
+  layer?: number
   segmentStart: Point2d
   segmentEnd: Point2d
   traceRadius: number
@@ -1127,13 +1127,15 @@ export class HighDensitySolverB01 extends BaseSolver {
         }
         if (segmentStart.z === segmentEnd.z) {
           const layer = this.zToLayer.get(segmentStart.z)
-          if (layer === undefined) {
+          if (layer === undefined && !obstacle.viaOnly) {
             return `Obstacle ${obstacleIndex} uses unavailable layer z=${segmentStart.z}`
           }
+          let routingLayer = layer
+          if (obstacle.viaOnly) routingLayer = undefined
           this.rasterizeObstacleTraceSegment({
             segmentStart,
             segmentEnd,
-            layer,
+            layer: routingLayer,
             obstacleRootId,
             obstacleTraceThickness: obstacle.traceThickness,
           })
@@ -1278,7 +1280,7 @@ export class HighDensitySolverB01 extends BaseSolver {
   private rasterizeObstacleTraceSegment(params: {
     segmentStart: Point2d
     segmentEnd: Point2d
-    layer: number
+    layer?: number
     obstacleRootId: ObstacleRootId
     obstacleTraceThickness: number
   }): void {
@@ -1302,20 +1304,23 @@ export class HighDensitySolverB01 extends BaseSolver {
         this.traceMargin,
     )
 
-    this.forEachCellNearSegment(
-      {
-        segmentStart: gridSegmentStart,
-        segmentEnd: gridSegmentEnd,
-        radius: traceClearanceRadius,
-      },
-      (cellId) => {
-        this.addObstacleRootId({
-          rootIdsByCell: this.obstacleTraceRootIdsFlat,
-          cellIndex: params.layer * this.planeSize + cellId,
-          obstacleRootId: params.obstacleRootId,
-        })
-      },
-    )
+    const routingLayer = params.layer
+    if (routingLayer !== undefined) {
+      this.forEachCellNearSegment(
+        {
+          segmentStart: gridSegmentStart,
+          segmentEnd: gridSegmentEnd,
+          radius: traceClearanceRadius,
+        },
+        (cellId) => {
+          this.addObstacleRootId({
+            rootIdsByCell: this.obstacleTraceRootIdsFlat,
+            cellIndex: routingLayer * this.planeSize + cellId,
+            obstacleRootId: params.obstacleRootId,
+          })
+        },
+      )
+    }
     this.forEachCellNearSegment(
       {
         segmentStart: gridSegmentStart,
