@@ -16,7 +16,7 @@ export function getBoardBoundarySnapshotSvg(solver: HighDensitySolverB01) {
     {
       points: [...outline, outline[0]!],
       strokeColor: "#18212b",
-      strokeWidth: "3px",
+      strokeWidth: 0.04,
     },
   ]
   const circles: NonNullable<GraphicsObject["circles"]> = []

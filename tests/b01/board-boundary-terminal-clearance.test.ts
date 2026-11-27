@@ -22,6 +22,7 @@ test("B01 checks the actual board clearance of terminals in the same grid cell",
     obstacles: [],
     highResolutionCellSize: 0.1,
     traceThickness: 0.1,
+    viaDiameter: 0.3,
   })
   solver.solve()
 
