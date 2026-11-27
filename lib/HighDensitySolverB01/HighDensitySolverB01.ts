@@ -647,7 +647,17 @@ function doesCapsuleIntersectRect(params: {
   )
 }
 
+export type StaticSegmentValidator = (segment: {
+  start: { x: number; y: number; z: number }
+  end: { x: number; y: number; z: number }
+  connectionName: string
+  rootConnectionName?: string
+  traceThickness: number
+  viaDiameter: number
+}) => boolean
+
 export interface HighDensitySolverB01Props {
+  staticSegmentValidator?: StaticSegmentValidator
   nodeWithPortPoints: NodeWithPortPoints
   obstacles: readonly HighDensityObstacle[]
   /** Physical board geometry, independent of the local search window. */
@@ -705,6 +715,7 @@ export class HighDensitySolverB01 extends BaseSolver {
   effort: number
   stepMultiplier: number
   hyperParameters: HyperParameters
+  readonly staticSegmentValidator?: StaticSegmentValidator
   initialPenaltyFn?: HighDensitySolverB01Props["initialPenaltyFn"]
 
   boundsMinX!: number
@@ -872,6 +883,7 @@ export class HighDensitySolverB01 extends BaseSolver {
 
   constructor(props: HighDensitySolverB01Props) {
     super()
+    this.staticSegmentValidator = props.staticSegmentValidator
     this.nodeWithPortPoints = props.nodeWithPortPoints
     this.obstacles = props.obstacles
     this.boardGeometry = props.boardGeometry
@@ -927,6 +939,7 @@ export class HighDensitySolverB01 extends BaseSolver {
         effort: this.effort,
         hyperParameters: this.hyperParameters,
         initialPenaltyFn: this.initialPenaltyFn,
+        staticSegmentValidator: this.staticSegmentValidator,
       },
     ]
   }
@@ -2422,6 +2435,11 @@ export class HighDensitySolverB01 extends BaseSolver {
 
     const seg = this.activeConnSeg
     if (z === seg.endZ && cellId === seg.endCellId) {
+      if (
+        this.nodePool.parent[nodeIdx] === -1 &&
+        !this.isStaticMoveAllowed(this.activeConnId, z, cellId, z, cellId)
+      )
+        return
       this.finalizeRoute(nodeIdx)
       this.activeConnSeg = null
       this.activeConnId = -1
@@ -2461,6 +2479,7 @@ export class HighDensitySolverB01 extends BaseSolver {
 
       this.computeMoveCostAndRips(
         activeConn,
+        z,
         z,
         cellId,
         neighborCellId,
@@ -2529,6 +2548,7 @@ export class HighDensitySolverB01 extends BaseSolver {
 
         this.computeMoveCostAndRips(
           activeConn,
+          z,
           nz,
           cellId,
           cellId,
@@ -2572,8 +2592,51 @@ export class HighDensitySolverB01 extends BaseSolver {
     }
   }
 
+  private isStaticMoveAllowed(
+    activeConn: ConnId,
+    fromZ: number,
+    fromCellId: number,
+    toZ: number,
+    toCellId: number,
+  ): boolean {
+    const validate = this.staticSegmentValidator
+    if (!validate) return true
+    const segment = this.activeConnSeg!
+    const gridStart = applyAffineTransformToPoint(this.gridToBoundsTransform, {
+      x: this.cellCenterX[fromCellId]!,
+      y: this.cellCenterY[fromCellId]!,
+    })
+    const gridEnd = applyAffineTransformToPoint(this.gridToBoundsTransform, {
+      x: this.cellCenterX[toCellId]!,
+      y: this.cellCenterY[toCellId]!,
+    })
+    const start =
+      fromZ === segment.startZ && fromCellId === segment.startCellId
+        ? segment.startPoint
+        : { ...gridStart, z: this.layerToZ.get(fromZ)! }
+    const end =
+      toZ === segment.endZ && toCellId === segment.endCellId
+        ? segment.endPoint
+        : { ...gridEnd, z: this.layerToZ.get(toZ)! }
+    const copper = {
+      connectionName: this.connIdToName[activeConn]!,
+      rootConnectionName: this.connIdToRootNet[activeConn],
+      traceThickness: this.traceThickness,
+      viaDiameter: this.viaDiameter,
+    }
+    if (fromZ === toZ) return validate({ ...copper, start, end })
+    const viaStart = { ...gridStart, z: start.z }
+    const viaEnd = { ...gridStart, z: end.z }
+    return (
+      validate({ ...copper, start, end: viaStart }) &&
+      validate({ ...copper, start: viaStart, end: viaEnd }) &&
+      validate({ ...copper, start: viaEnd, end })
+    )
+  }
+
   private computeMoveCostAndRips(
     activeConn: ConnId,
+    fromZ: number,
     toZ: number,
     fromCellId: number,
     toCellId: number,
@@ -2586,6 +2649,14 @@ export class HighDensitySolverB01 extends BaseSolver {
     let head = rippedHead
     let ripCount = currentRipCount
     const toFlatIdx = toZ * this.planeSize + toCellId
+    if (
+      !this.isStaticMoveAllowed(activeConn, fromZ, fromCellId, toZ, toCellId)
+    ) {
+      this._moveCost = -1
+      this._moveRippedHead = head
+      this._moveRipCount = ripCount
+      return
+    }
 
     const obstacleRootIds = isVia
       ? this.obstacleViaRootIdsByCell[toCellId]
@@ -3629,9 +3700,18 @@ export class HighDensitySolverB01 extends BaseSolver {
           const aliasPoints = (
             alias.reversedFromCanonical ? [...points].reverse() : points
           ).map((point) => ({ ...point }))
-          if (aliasPoints.length > 0) {
+          if (aliasPoints.length === 1) {
             aliasPoints[0] = { ...alias.startPoint }
-            if (aliasPoints.length > 1) {
+            aliasPoints.push({ ...alias.endPoint })
+          } else if (aliasPoints.length > 1) {
+            if (aliasPoints[0]!.z !== aliasPoints[1]!.z) {
+              aliasPoints.unshift({ ...alias.startPoint })
+            } else {
+              aliasPoints[0] = { ...alias.startPoint }
+            }
+            if (aliasPoints.at(-2)!.z !== aliasPoints.at(-1)!.z) {
+              aliasPoints.push({ ...alias.endPoint })
+            } else {
               aliasPoints[aliasPoints.length - 1] = { ...alias.endPoint }
             }
           }

@@ -1,6 +1,6 @@
 import "bun-match-svg"
 import { expect, test } from "bun:test"
-import { getSvgFromGraphicsObject } from "graphics-debug"
+import { getSvgFromGraphicsObject, type GraphicsObject } from "graphics-debug"
 import { HighDensitySolverB01 } from "../lib/HighDensitySolverB01/HighDensitySolverB01"
 
 type Point = { x: number; y: number; z: number }
@@ -44,7 +44,9 @@ test("B01 validates through-via copper outside its routing layers", (): void => 
   const output = solver.getOutput()[0]!
   const via = output.vias[0]!
   const gap = Math.hypot(via.x, via.y) - 0.35
-  const graphics = solver.visualize()
+  expect(viaChecks).toBeGreaterThan(0)
+  expect(gap).toBeGreaterThanOrEqual(0.1 - 1e-9)
+  const graphics: GraphicsObject = solver.visualize()
   graphics.circles = [
     ...(graphics.circles ?? []),
     {
