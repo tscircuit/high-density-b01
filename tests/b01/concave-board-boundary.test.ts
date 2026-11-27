@@ -1,7 +1,9 @@
 import { expect, test } from "bun:test"
+import "bun-match-svg"
 import { HighDensitySolverB01 } from "../../lib/HighDensitySolverB01/HighDensitySolverB01"
+import { getBoardBoundarySnapshotSvg } from "../fixtures/getBoardBoundarySnapshotSvg"
 
-test("B01 routes through the board around a concave cutout", () => {
+test("B01 routes through the board around a concave cutout", async () => {
   const solver = new HighDensitySolverB01({
     nodeWithPortPoints: {
       capacityMeshNodeId: "concave-board",
@@ -48,4 +50,7 @@ test("B01 routes through the board around a concave cutout", () => {
     crossesCenterlineWithinBoard = true
   }
   expect(crossesCenterlineWithinBoard).toBe(true)
+  await expect(getBoardBoundarySnapshotSvg(solver)).toMatchSvgSnapshot(
+    import.meta.path,
+  )
 })

@@ -1,7 +1,9 @@
 import { expect, test } from "bun:test"
+import "bun-match-svg"
 import { HighDensitySolverB01 } from "../../lib/HighDensitySolverB01/HighDensitySolverB01"
+import { getBoardBoundarySnapshotSvg } from "../fixtures/getBoardBoundarySnapshotSvg"
 
-test("B01 keeps via copper clear of the physical rectangular board edge", () => {
+test("B01 keeps via copper clear of the physical rectangular board edge", async () => {
   const solver = new HighDensitySolverB01({
     nodeWithPortPoints: {
       capacityMeshNodeId: "board-edge-via",
@@ -28,4 +30,7 @@ test("B01 keeps via copper clear of the physical rectangular board edge", () => 
   const [route] = solver.getOutput()
   expect(route!.vias).toHaveLength(1)
   expect(route!.vias[0]!.x).toBeGreaterThanOrEqual(0.45)
+  await expect(getBoardBoundarySnapshotSvg(solver)).toMatchSvgSnapshot(
+    import.meta.path,
+  )
 })
