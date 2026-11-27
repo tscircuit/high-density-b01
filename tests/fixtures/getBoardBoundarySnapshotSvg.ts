@@ -1,10 +1,18 @@
 import { getSvgFromGraphicsObject, type GraphicsObject } from "graphics-debug"
-import type { HighDensitySolverB01 } from "../../lib/HighDensitySolverB01/HighDensitySolverB01"
+import type { HighDensityIntraNodeRoute } from "../../lib/types"
 
-export function getBoardBoundarySnapshotSvg(solver: HighDensitySolverB01) {
-  const board = solver.boardGeometry
-  if (!board) throw new Error("Expected board geometry for the snapshot")
-
+export function getBoardBoundarySnapshotSvg({
+  board,
+  routes,
+  framePadding = 0,
+}: {
+  board: {
+    bounds: { minX: number; minY: number; maxX: number; maxY: number }
+    outline?: readonly { x: number; y: number }[]
+  }
+  routes: readonly HighDensityIntraNodeRoute[]
+  framePadding?: number
+}) {
   const { minX, minY, maxX, maxY } = board.bounds
   const outline = board.outline ?? [
     { x: minX, y: minY },
@@ -21,7 +29,7 @@ export function getBoardBoundarySnapshotSvg(solver: HighDensitySolverB01) {
   ]
   const circles: NonNullable<GraphicsObject["circles"]> = []
 
-  for (const route of solver.getOutput()) {
+  for (const route of routes) {
     let start = 0
     for (let end = 1; end <= route.route.length; end++) {
       const layer = route.route[start]!.z
@@ -46,8 +54,23 @@ export function getBoardBoundarySnapshotSvg(solver: HighDensitySolverB01) {
     }
   }
 
+  // Keep the board in the same frame when via copper extends outside it.
+  const points = framePadding
+    ? [
+        {
+          x: minX - framePadding,
+          y: minY - framePadding,
+          color: "transparent",
+        },
+        {
+          x: maxX + framePadding,
+          y: maxY + framePadding,
+          color: "transparent",
+        },
+      ]
+    : undefined
   return getSvgFromGraphicsObject(
-    { coordinateSystem: "cartesian", lines, circles },
+    { coordinateSystem: "cartesian", lines, circles, points },
     { backgroundColor: "white" },
   ).replace(/[ \t]+$/gm, "")
 }

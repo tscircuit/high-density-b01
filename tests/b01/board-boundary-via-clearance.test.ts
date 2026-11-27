@@ -3,34 +3,41 @@ import "bun-match-svg"
 import { HighDensitySolverB01 } from "../../lib/HighDensitySolverB01/HighDensitySolverB01"
 import { getBoardBoundarySnapshotSvg } from "../fixtures/getBoardBoundarySnapshotSvg"
 
-test("B01 keeps via copper clear of the physical rectangular board edge", async () => {
+test("B01 routes a layer change next to the physical board edge", async () => {
+  const board = {
+    bounds: { minX: 0, minY: 0, maxX: 4, maxY: 4 },
+    minBoardEdgeClearance: 0.05,
+  }
+  const viaDiameter = 0.6
   const solver = new HighDensitySolverB01({
     nodeWithPortPoints: {
       capacityMeshNodeId: "board-edge-via",
-      center: { x: 1, y: 2 },
+      center: { x: 0.7, y: 2 },
       width: 4,
       height: 4,
       availableZ: [0, 1],
       portPoints: [
-        { connectionName: "signal", x: 0.22, y: 2, z: 0 },
-        { connectionName: "signal", x: 0.22, y: 2, z: 1 },
+        { connectionName: "signal", x: 0.12, y: 2, z: 0 },
+        { connectionName: "signal", x: 0.12, y: 2, z: 1 },
       ],
     },
-    boardGeometry: {
-      bounds: { minX: 0, minY: 0, maxX: 4, maxY: 4 },
-      minBoardEdgeClearance: 0.15,
-    },
+    boardGeometry: board,
     obstacles: [],
     traceThickness: 0.1,
-    viaDiameter: 0.6,
+    viaDiameter,
   })
   solver.solve()
 
   expect(solver.solved).toBe(true)
-  const [route] = solver.getOutput()
+  const routes = solver.getOutput()
+  const [route] = routes
   expect(route!.vias).toHaveLength(1)
-  expect(route!.vias[0]!.x).toBeGreaterThanOrEqual(0.45)
-  await expect(getBoardBoundarySnapshotSvg(solver)).toMatchSvgSnapshot(
-    import.meta.path,
-  )
+  const viaClearance = route!.vias[0]!.x - viaDiameter / 2 - board.bounds.minX
+  expect(viaClearance).toBeGreaterThanOrEqual(board.minBoardEdgeClearance)
+  const svg = getBoardBoundarySnapshotSvg({
+    board,
+    routes,
+    framePadding: viaDiameter / 2,
+  })
+  await expect(svg).toMatchSvgSnapshot(import.meta.path)
 })

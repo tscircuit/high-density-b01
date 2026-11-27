@@ -4,6 +4,20 @@ import { HighDensitySolverB01 } from "../../lib/HighDensitySolverB01/HighDensity
 import { getBoardBoundarySnapshotSvg } from "../fixtures/getBoardBoundarySnapshotSvg"
 
 test("B01 routes through the board around a concave cutout", async () => {
+  const board = {
+    bounds: { minX: 0, minY: 0, maxX: 8, maxY: 8 },
+    outline: [
+      { x: 0, y: 0 },
+      { x: 8, y: 0 },
+      { x: 8, y: 8 },
+      { x: 5, y: 8 },
+      { x: 5, y: 3 },
+      { x: 3, y: 3 },
+      { x: 3, y: 8 },
+      { x: 0, y: 8 },
+    ],
+    minBoardEdgeClearance: 0.2,
+  }
   const solver = new HighDensitySolverB01({
     nodeWithPortPoints: {
       capacityMeshNodeId: "concave-board",
@@ -16,20 +30,7 @@ test("B01 routes through the board around a concave cutout", async () => {
         { connectionName: "signal", x: 7, y: 6, z: 1 },
       ],
     },
-    boardGeometry: {
-      bounds: { minX: 0, minY: 0, maxX: 8, maxY: 8 },
-      outline: [
-        { x: 0, y: 0 },
-        { x: 8, y: 0 },
-        { x: 8, y: 8 },
-        { x: 5, y: 8 },
-        { x: 5, y: 3 },
-        { x: 3, y: 3 },
-        { x: 3, y: 8 },
-        { x: 0, y: 8 },
-      ],
-      minBoardEdgeClearance: 0.2,
-    },
+    boardGeometry: board,
     obstacles: [],
     traceThickness: 0.1,
     viaDiameter: 0.3,
@@ -37,7 +38,8 @@ test("B01 routes through the board around a concave cutout", async () => {
   solver.solve()
 
   expect(solver.solved).toBe(true)
-  const [route] = solver.getOutput()
+  const routes = solver.getOutput()
+  const [route] = routes
   expect(route!.vias).toHaveLength(1)
   let crossesCenterlineWithinBoard = false
   for (let i = 1; i < route!.route.length; i++) {
@@ -50,7 +52,6 @@ test("B01 routes through the board around a concave cutout", async () => {
     crossesCenterlineWithinBoard = true
   }
   expect(crossesCenterlineWithinBoard).toBe(true)
-  await expect(getBoardBoundarySnapshotSvg(solver)).toMatchSvgSnapshot(
-    import.meta.path,
-  )
+  const svg = getBoardBoundarySnapshotSvg({ board, routes })
+  await expect(svg).toMatchSvgSnapshot(import.meta.path)
 })
