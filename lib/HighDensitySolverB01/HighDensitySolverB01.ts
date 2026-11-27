@@ -15,6 +15,7 @@ import type {
   NodeWithPortPoints,
   PortPoint,
 } from "../types"
+import { createBoardBoundary } from "./createBoardBoundary"
 
 type ConnId = number
 type ObstacleRootId = number
@@ -30,6 +31,12 @@ type RectBounds = {
   minY: number
   maxX: number
   maxY: number
+}
+
+export interface B01BoardGeometry {
+  bounds: RectBounds
+  outline?: readonly Point2d[]
+  minBoardEdgeClearance?: number
 }
 
 type RegionName = "left" | "top" | "right" | "bottom" | "middle"
@@ -643,6 +650,8 @@ function doesCapsuleIntersectRect(params: {
 export interface HighDensitySolverB01Props {
   nodeWithPortPoints: NodeWithPortPoints
   obstacles: readonly HighDensityObstacle[]
+  /** Physical board geometry, independent of the local search window. */
+  boardGeometry?: B01BoardGeometry
   highResolutionCellSize?: number
   highResolutionCellThickness?: number
   lowResolutionCellSize?: number
@@ -676,6 +685,11 @@ export class HighDensitySolverB01 extends BaseSolver {
 
   nodeWithPortPoints: NodeWithPortPoints
   obstacles: readonly HighDensityObstacle[]
+  readonly boardGeometry?: B01BoardGeometry
+  private boardBoundary?: {
+    geometry: ReturnType<typeof createBoardBoundary>
+    traceClearance: number
+  }
   highResolutionCellSize: number
   highResolutionCellThickness: number
   lowResolutionCellSize: number
@@ -727,6 +741,9 @@ export class HighDensitySolverB01 extends BaseSolver {
   neighborOffset!: Int32Array
   neighborIds!: Int32Array
   neighborCosts!: Float32Array
+  private boardEdgeMoveChecks?: Int8Array
+  private boardViaChecks?: Uint8Array
+  private boardAllowsViaCenter?: (point: Point2d) => boolean
 
   private usedCellsFlat!: Int32Array
   private sharedCellsFlat!: Array<number[] | undefined>
@@ -857,6 +874,7 @@ export class HighDensitySolverB01 extends BaseSolver {
     super()
     this.nodeWithPortPoints = props.nodeWithPortPoints
     this.obstacles = props.obstacles
+    this.boardGeometry = props.boardGeometry
     this.highResolutionCellSize = props.highResolutionCellSize ?? 0.1
     this.highResolutionCellThickness = Math.max(
       1,
@@ -893,6 +911,7 @@ export class HighDensitySolverB01 extends BaseSolver {
       {
         nodeWithPortPoints: this.nodeWithPortPoints,
         obstacles: this.obstacles,
+        boardGeometry: this.boardGeometry,
         highResolutionCellSize: this.highResolutionCellSize,
         highResolutionCellThickness: this.highResolutionCellThickness,
         lowResolutionCellSize: this.lowResolutionCellSize,
@@ -967,6 +986,7 @@ export class HighDensitySolverB01 extends BaseSolver {
       this.failed = true
       return
     }
+    this.configureBoardBoundary()
 
     this.connNameToId = new Map()
     this.connIdToName = []
@@ -1478,6 +1498,13 @@ export class HighDensitySolverB01 extends BaseSolver {
     }
   }
 
+  private getCellPointInBounds(cellId: number): Point2d {
+    return applyAffineTransformToPoint(this.gridToBoundsTransform, {
+      x: this.cellCenterX[cellId]!,
+      y: this.cellCenterY[cellId]!,
+    })
+  }
+
   private transformBoundsPointToGrid(point: Point2d): Point2d {
     const transform = this.gridToBoundsTransform
     return {
@@ -1599,19 +1626,13 @@ export class HighDensitySolverB01 extends BaseSolver {
       params.layer === activeSegment.startZ &&
       params.fromCellId === activeSegment.startCellId
         ? activeSegment.startPoint
-        : applyAffineTransformToPoint(this.gridToBoundsTransform, {
-            x: this.cellCenterX[params.fromCellId]!,
-            y: this.cellCenterY[params.fromCellId]!,
-          })
+        : this.getCellPointInBounds(params.fromCellId)
     const segmentEnd =
       activeSegment &&
       params.layer === activeSegment.endZ &&
       params.toCellId === activeSegment.endCellId
         ? activeSegment.endPoint
-        : applyAffineTransformToPoint(this.gridToBoundsTransform, {
-            x: this.cellCenterX[params.toCellId]!,
-            y: this.cellCenterY[params.toCellId]!,
-          })
+        : this.getCellPointInBounds(params.toCellId)
 
     const minX = Math.min(segmentStart.x, segmentEnd.x)
     const minY = Math.min(segmentStart.y, segmentEnd.y)
@@ -1700,10 +1721,7 @@ export class HighDensitySolverB01 extends BaseSolver {
     cellId: number
   }): boolean {
     const activeRootConnectionName = this.connIdToRootNet[params.activeConn]
-    const center = applyAffineTransformToPoint(this.gridToBoundsTransform, {
-      x: this.cellCenterX[params.cellId]!,
-      y: this.cellCenterY[params.cellId]!,
-    })
+    const center = this.getCellPointInBounds(params.cellId)
 
     const traceCandidates =
       this.obstacleTraceSpatialIndex?.search(
@@ -2142,6 +2160,163 @@ export class HighDensitySolverB01 extends BaseSolver {
     return region.offset + row * region.cols + col
   }
 
+  private configureBoardBoundary(): void {
+    if (!this.boardGeometry) return
+    const { minBoardEdgeClearance = 0 } = this.boardGeometry
+    if (!Number.isFinite(minBoardEdgeClearance) || minBoardEdgeClearance < 0) {
+      throw new Error("B01 received invalid physical board geometry")
+    }
+    const geometry = createBoardBoundary(this.boardGeometry)
+    const traceClearance = minBoardEdgeClearance + this.traceThickness / 2
+    const viaClearance = minBoardEdgeClearance + this.viaDiameter / 2
+    let minX = this.boundsMinX
+    let maxX = this.boundsMaxX
+    let minY = this.boundsMinY
+    let maxY = this.boundsMaxY
+    for (const point of this.nodeWithPortPoints.portPoints) {
+      minX = Math.min(minX, point.x)
+      maxX = Math.max(maxX, point.x)
+      minY = Math.min(minY, point.y)
+      maxY = Math.max(maxY, point.y)
+    }
+    const traceBounds = { minX, minY, maxX, maxY }
+    if (
+      geometry.containsBounds({
+        bounds: traceBounds,
+        clearance: Math.max(traceClearance, viaClearance),
+      })
+    ) {
+      return
+    }
+    if (
+      !geometry.containsBounds({
+        bounds: traceBounds,
+        clearance: traceClearance,
+      })
+    ) {
+      this.boardEdgeMoveChecks = new Int8Array(this.neighborIds.length)
+      this.boardBoundary = { geometry, traceClearance }
+    }
+
+    // The existing grid border inset limits where via centers can occur.
+    // Keep the transformed envelope conservative at floating-point boundaries.
+    const inset = Math.max(0, this.viaMinDistFromBorder - 1e-9)
+    if (
+      this.layers < 2 ||
+      2 * inset >
+        Math.min(
+          this.boundsMaxX - this.boundsMinX,
+          this.boundsMaxY - this.boundsMinY,
+        )
+    ) {
+      return
+    }
+    const viaMin = applyAffineTransformToPoint(this.gridToBoundsTransform, {
+      x: this.boundsMinX + inset,
+      y: this.boundsMinY + inset,
+    })
+    const viaMax = applyAffineTransformToPoint(this.gridToBoundsTransform, {
+      x: this.boundsMaxX - inset,
+      y: this.boundsMaxY - inset,
+    })
+    if (
+      !geometry.containsBounds({
+        bounds: {
+          minX: viaMin.x,
+          minY: viaMin.y,
+          maxX: viaMax.x,
+          maxY: viaMax.y,
+        },
+        clearance: viaClearance,
+      })
+    ) {
+      this.boardViaChecks = new Uint8Array(this.planeSize)
+      this.boardAllowsViaCenter = (point) =>
+        geometry.containsSegment({
+          start: point,
+          end: point,
+          clearance: viaClearance,
+        })
+    }
+  }
+
+  private checkBoardVia(cellId: number): boolean {
+    if (!this.boardAllowsViaCenter!(this.getCellPointInBounds(cellId))) {
+      this.viaAllowed[cellId] = 0
+      return false
+    }
+    this.boardViaChecks![cellId] = 1
+    return true
+  }
+
+  private boardAllowsMove({
+    segment,
+    fromZ,
+    fromCell,
+    toZ,
+    toCell,
+    neighborIndex,
+  }: {
+    segment: ConnectionSeg
+    fromZ: number
+    fromCell: number
+    toZ: number
+    toCell: number
+    neighborIndex?: number
+  }): boolean {
+    const { geometry, traceClearance } = this.boardBoundary!
+    const atStart = fromZ === segment.startZ && fromCell === segment.startCellId
+    const atEnd = toZ === segment.endZ && toCell === segment.endCellId
+    if (!atStart && !atEnd) {
+      // Grid edges are stable across layers and route searches.
+      const boardMoveChecks = this.boardEdgeMoveChecks!
+      if (boardMoveChecks[neighborIndex!] === 0) {
+        const allowed = geometry.containsSegment({
+          start: this.getCellPointInBounds(fromCell),
+          end: this.getCellPointInBounds(toCell),
+          clearance: traceClearance,
+        })
+        boardMoveChecks[neighborIndex!] = allowed ? 1 : -1
+      }
+      return boardMoveChecks[neighborIndex!] === 1
+    }
+    const from = this.getCellPointInBounds(fromCell)
+    const to = this.getCellPointInBounds(toCell)
+    for (const alias of segment.connectionAliases) {
+      const startPort = alias.reversedFromCanonical
+        ? alias.endPoint
+        : alias.startPoint
+      const endPort = alias.reversedFromCanonical
+        ? alias.startPoint
+        : alias.endPoint
+      const start = atStart ? startPort : from
+      const end = atEnd ? endPort : to
+      if (neighborIndex === undefined) {
+        // The via stays at the grid center even when the wire starts or
+        // ends at an exact terminal position.
+        if (
+          !geometry.containsSegment({
+            start,
+            end: from,
+            clearance: traceClearance,
+          }) ||
+          !geometry.containsSegment({
+            start: to,
+            end,
+            clearance: traceClearance,
+          })
+        ) {
+          return false
+        }
+      } else if (
+        !geometry.containsSegment({ start, end, clearance: traceClearance })
+      ) {
+        return false
+      }
+    }
+    return true
+  }
+
   private stepOnce(): void {
     if (!this.activeConnSeg) {
       if (this.unsolvedSegs.length === 0) {
@@ -2150,6 +2325,24 @@ export class HighDensitySolverB01 extends BaseSolver {
       }
 
       const next = this.unsolvedSegs.shift()!
+      const boundary = this.boardBoundary
+      if (
+        boundary &&
+        next.startZ === next.endZ &&
+        next.startCellId === next.endCellId &&
+        next.connectionAliases.some(
+          ({ startPoint, endPoint }) =>
+            !boundary.geometry.containsSegment({
+              start: startPoint,
+              end: endPoint,
+              clearance: boundary.traceClearance,
+            }),
+        )
+      ) {
+        this.error = `Route terminals cannot clear the board edge for ${this.connIdToName[next.connId]}`
+        this.failed = true
+        return
+      }
       this.activeConnSeg = next
       this.activeConnId = next.connId
       // Occupancy and net ownership stay fixed for one route search.
@@ -2242,9 +2435,28 @@ export class HighDensitySolverB01 extends BaseSolver {
     const endCellId = seg.endCellId
     const neighborStart = this.neighborOffset[cellId]!
     const neighborEnd = this.neighborOffset[cellId + 1]!
+    const boardMoveChecks = this.boardEdgeMoveChecks
+    const atBoardStart = z === seg.startZ && cellId === seg.startCellId
+    const onEndLayer = z === endZ
 
     for (let i = neighborStart; i < neighborEnd; i++) {
       const neighborCellId = this.neighborIds[i]!
+      if (
+        boardMoveChecks &&
+        (boardMoveChecks[i] !== 1 ||
+          atBoardStart ||
+          (onEndLayer && neighborCellId === endCellId)) &&
+        !this.boardAllowsMove({
+          segment: seg,
+          fromZ: z,
+          fromCell: cellId,
+          toZ: z,
+          toCell: neighborCellId,
+          neighborIndex: i,
+        })
+      ) {
+        continue
+      }
       const nextFlatIdx = z * this.planeSize + neighborCellId
 
       this.computeMoveCostAndRips(
@@ -2291,12 +2503,28 @@ export class HighDensitySolverB01 extends BaseSolver {
     }
 
     const fixedPortOwner = this.fixedPortOwnerByViaCell[cellId]!
+    const boardViaChecks = this.boardViaChecks
     if (
       this.viaAllowed[cellId] &&
-      (fixedPortOwner === -1 || this.allowSharedUse(activeConn, fixedPortOwner))
+      (fixedPortOwner === -1 ||
+        this.allowSharedUse(activeConn, fixedPortOwner)) &&
+      (!boardViaChecks || boardViaChecks[cellId] || this.checkBoardVia(cellId))
     ) {
       for (let nz = 0; nz < this.layers; nz++) {
         if (nz === z) continue
+        if (
+          boardMoveChecks &&
+          (atBoardStart || (cellId === endCellId && nz === endZ)) &&
+          !this.boardAllowsMove({
+            segment: seg,
+            fromZ: z,
+            fromCell: cellId,
+            toZ: nz,
+            toCell: cellId,
+          })
+        ) {
+          continue
+        }
         const nextFlatIdx = nz * this.planeSize + cellId
 
         this.computeMoveCostAndRips(
@@ -2579,13 +2807,7 @@ export class HighDensitySolverB01 extends BaseSolver {
       gridRadius,
       (cellId) => {
         if (!this.viaAllowed[cellId]) return
-        const viaCenterInBounds = applyAffineTransformToPoint(
-          this.gridToBoundsTransform,
-          {
-            x: this.cellCenterX[cellId]!,
-            y: this.cellCenterY[cellId]!,
-          },
-        )
+        const viaCenterInBounds = this.getCellPointInBounds(cellId)
         if (
           Math.hypot(
             viaCenterInBounds.x - port.x,

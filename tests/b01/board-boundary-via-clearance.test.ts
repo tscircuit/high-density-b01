@@ -21,6 +21,7 @@ test("B01 routes a layer change next to the physical board edge", async () => {
         { connectionName: "signal", x: 0.12, y: 2, z: 1 },
       ],
     },
+    boardGeometry: board,
     obstacles: [],
     traceThickness: 0.1,
     viaDiameter,
@@ -32,6 +33,7 @@ test("B01 routes a layer change next to the physical board edge", async () => {
   const [route] = routes
   expect(route!.vias).toHaveLength(1)
   const viaClearance = route!.vias[0]!.x - viaDiameter / 2 - board.bounds.minX
+  expect(viaClearance).toBeGreaterThanOrEqual(board.minBoardEdgeClearance)
   const svg = getBoardBoundarySnapshotSvg({
     board,
     routes,
