@@ -1,3 +1,4 @@
+import { isPointInsidePolygon } from "@tscircuit/math-utils"
 import { BaseSolver } from "@tscircuit/solver-utils"
 import Flatbush from "flatbush"
 import { getConnectionPortPointPairs } from "../getConnectionPortPointPairs"
@@ -592,16 +593,9 @@ function fitsInsideBoard({
   const maxX = Math.max(start.x, end.x) + clearance
   const minY = Math.min(start.y, end.y) - clearance
   const maxY = Math.max(start.y, end.y) + clearance
-  let inside = false
   for (let i = 0; i < outline.length; i++) {
     const a = outline[i]!
     const b = outline[(i + 1) % outline.length]!
-    if (
-      a.y > start.y !== b.y > start.y &&
-      start.x < a.x + ((start.y - a.y) * (b.x - a.x)) / (b.y - a.y)
-    ) {
-      inside = !inside
-    }
     if (
       Math.max(a.x, b.x) < minX ||
       Math.min(a.x, b.x) > maxX ||
@@ -616,11 +610,10 @@ function fitsInsideBoard({
       secondStart: a,
       secondEnd: b,
     })
-    // With the first endpoint inside and no boundary intersections, the
-    // entire segment is inside, including across concave parts of the board.
     if (distance === 0 || distance < clearance ** 2) return false
   }
-  return inside
+  // With no boundary intersections, an inside start keeps the entire segment inside.
+  return isPointInsidePolygon(start, outline)
 }
 
 function doesSegmentIntersectRect(params: {
@@ -1543,6 +1536,13 @@ export class HighDensitySolverB01 extends BaseSolver {
     }
   }
 
+  private getCellPointInBounds(cellId: number): Point2d {
+    return applyAffineTransformToPoint(this.gridToBoundsTransform, {
+      x: this.cellCenterX[cellId]!,
+      y: this.cellCenterY[cellId]!,
+    })
+  }
+
   private transformBoundsPointToGrid(point: Point2d): Point2d {
     const transform = this.gridToBoundsTransform
     return {
@@ -1664,19 +1664,13 @@ export class HighDensitySolverB01 extends BaseSolver {
       params.layer === activeSegment.startZ &&
       params.fromCellId === activeSegment.startCellId
         ? activeSegment.startPoint
-        : applyAffineTransformToPoint(this.gridToBoundsTransform, {
-            x: this.cellCenterX[params.fromCellId]!,
-            y: this.cellCenterY[params.fromCellId]!,
-          })
+        : this.getCellPointInBounds(params.fromCellId)
     const segmentEnd =
       activeSegment &&
       params.layer === activeSegment.endZ &&
       params.toCellId === activeSegment.endCellId
         ? activeSegment.endPoint
-        : applyAffineTransformToPoint(this.gridToBoundsTransform, {
-            x: this.cellCenterX[params.toCellId]!,
-            y: this.cellCenterY[params.toCellId]!,
-          })
+        : this.getCellPointInBounds(params.toCellId)
 
     const minX = Math.min(segmentStart.x, segmentEnd.x)
     const minY = Math.min(segmentStart.y, segmentEnd.y)
@@ -1765,10 +1759,7 @@ export class HighDensitySolverB01 extends BaseSolver {
     cellId: number
   }): boolean {
     const activeRootConnectionName = this.connIdToRootNet[params.activeConn]
-    const center = applyAffineTransformToPoint(this.gridToBoundsTransform, {
-      x: this.cellCenterX[params.cellId]!,
-      y: this.cellCenterY[params.cellId]!,
-    })
+    const center = this.getCellPointInBounds(params.cellId)
 
     const traceCandidates =
       this.obstacleTraceSpatialIndex?.search(
@@ -2205,13 +2196,6 @@ export class HighDensitySolverB01 extends BaseSolver {
   private cellIdFor(regionId: number, row: number, col: number) {
     const region = this.regions[regionId]!
     return region.offset + row * region.cols + col
-  }
-
-  private getCellPointInBounds(cellId: number): Point2d {
-    return applyAffineTransformToPoint(this.gridToBoundsTransform, {
-      x: this.cellCenterX[cellId]!,
-      y: this.cellCenterY[cellId]!,
-    })
   }
 
   private configureBoardBoundary(): void {
@@ -2840,13 +2824,7 @@ export class HighDensitySolverB01 extends BaseSolver {
       gridRadius,
       (cellId) => {
         if (!this.viaAllowed[cellId]) return
-        const viaCenterInBounds = applyAffineTransformToPoint(
-          this.gridToBoundsTransform,
-          {
-            x: this.cellCenterX[cellId]!,
-            y: this.cellCenterY[cellId]!,
-          },
-        )
+        const viaCenterInBounds = this.getCellPointInBounds(cellId)
         if (
           Math.hypot(
             viaCenterInBounds.x - port.x,
