@@ -1,4 +1,3 @@
-import { isPointInsidePolygon } from "@tscircuit/math-utils"
 import { BaseSolver } from "@tscircuit/solver-utils"
 import Flatbush from "flatbush"
 import { getConnectionPortPointPairs } from "../getConnectionPortPointPairs"
@@ -16,6 +15,7 @@ import type {
   NodeWithPortPoints,
   PortPoint,
 } from "../types"
+import { fitsInsideBoard } from "./fitsInsideBoard"
 
 type ConnId = number
 type ObstacleRootId = number
@@ -570,44 +570,6 @@ function getSquaredDistanceBetweenSegments(params: {
       segmentEnd: params.firstEnd,
     }),
   )
-}
-
-function fitsInsideBoard({
-  outline,
-  start,
-  end,
-  clearance,
-}: {
-  outline: readonly Point2d[]
-  start: Point2d
-  end: Point2d
-  clearance: number
-}): boolean {
-  const minX = Math.min(start.x, end.x) - clearance
-  const maxX = Math.max(start.x, end.x) + clearance
-  const minY = Math.min(start.y, end.y) - clearance
-  const maxY = Math.max(start.y, end.y) + clearance
-  for (let i = 0; i < outline.length; i++) {
-    const a = outline[i]!
-    const b = outline[(i + 1) % outline.length]!
-    if (
-      Math.max(a.x, b.x) < minX ||
-      Math.min(a.x, b.x) > maxX ||
-      Math.max(a.y, b.y) < minY ||
-      Math.min(a.y, b.y) > maxY
-    ) {
-      continue
-    }
-    const distance = getSquaredDistanceBetweenSegments({
-      firstStart: start,
-      firstEnd: end,
-      secondStart: a,
-      secondEnd: b,
-    })
-    if (distance === 0 || distance < clearance ** 2) return false
-  }
-  // With no boundary intersections, an inside start keeps the entire segment inside.
-  return isPointInsidePolygon(start, outline)
 }
 
 function doesSegmentIntersectRect(params: {
