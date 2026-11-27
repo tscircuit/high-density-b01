@@ -577,12 +577,17 @@ function getSquaredDistanceBetweenSegments(params: {
   )
 }
 
-function fitsInsideBoard(
-  outline: readonly Point2d[],
-  start: Point2d,
-  end: Point2d,
-  clearance: number,
-): boolean {
+function fitsInsideBoard({
+  outline,
+  start,
+  end,
+  clearance,
+}: {
+  outline: readonly Point2d[]
+  start: Point2d
+  end: Point2d
+  clearance: number
+}): boolean {
   const minX = Math.min(start.x, end.x) - clearance
   const maxX = Math.max(start.x, end.x) + clearance
   const minY = Math.min(start.y, end.y) - clearance
@@ -2251,12 +2256,12 @@ export class HighDensitySolverB01 extends BaseSolver {
     // Interior windows need no board checks during search.
     if (
       corners.every((corner, i) =>
-        fitsInsideBoard(
-          boardOutline,
-          corner,
-          corners[(i + 1) % corners.length]!,
-          Math.max(traceClearance, viaClearance),
-        ),
+        fitsInsideBoard({
+          outline: boardOutline,
+          start: corner,
+          end: corners[(i + 1) % corners.length]!,
+          clearance: Math.max(traceClearance, viaClearance),
+        }),
       )
     ) {
       return
@@ -2269,20 +2274,34 @@ export class HighDensitySolverB01 extends BaseSolver {
     for (let cellId = 0; cellId < this.planeSize; cellId++) {
       if (!this.viaAllowed[cellId]) continue
       const point = this.getCellPointInBounds(cellId)
-      if (!fitsInsideBoard(boardOutline, point, point, viaClearance)) {
+      if (
+        !fitsInsideBoard({
+          outline: boardOutline,
+          start: point,
+          end: point,
+          clearance: viaClearance,
+        })
+      ) {
         this.viaAllowed[cellId] = 0
       }
     }
   }
 
-  private boardAllowsMove(
-    segment: ConnectionSeg,
-    fromZ: number,
-    fromCell: number,
-    toZ: number,
-    toCell: number,
-    neighborIndex?: number,
-  ): boolean {
+  private boardAllowsMove({
+    segment,
+    fromZ,
+    fromCell,
+    toZ,
+    toCell,
+    neighborIndex,
+  }: {
+    segment: ConnectionSeg
+    fromZ: number
+    fromCell: number
+    toZ: number
+    toCell: number
+    neighborIndex?: number
+  }): boolean {
     const { outline, traceClearance, neighborChecks } = this.boardBoundary!
     const atStart = fromZ === segment.startZ && fromCell === segment.startCellId
     const atEnd = toZ === segment.endZ && toCell === segment.endCellId
@@ -2291,12 +2310,12 @@ export class HighDensitySolverB01 extends BaseSolver {
       // layers and route searches, so evaluate each edge at most once.
       if (neighborIndex === undefined) return true
       if (neighborChecks[neighborIndex] === 0) {
-        const allowed = fitsInsideBoard(
+        const allowed = fitsInsideBoard({
           outline,
-          this.getCellPointInBounds(fromCell),
-          this.getCellPointInBounds(toCell),
-          traceClearance,
-        )
+          start: this.getCellPointInBounds(fromCell),
+          end: this.getCellPointInBounds(toCell),
+          clearance: traceClearance,
+        })
         neighborChecks[neighborIndex] = allowed ? 1 : -1
       }
       return neighborChecks[neighborIndex] === 1
@@ -2316,12 +2335,24 @@ export class HighDensitySolverB01 extends BaseSolver {
         // The via stays at the grid center even when the wire starts or
         // ends at an exact terminal position.
         if (
-          !fitsInsideBoard(outline, start, from, traceClearance) ||
-          !fitsInsideBoard(outline, to, end, traceClearance)
+          !fitsInsideBoard({
+            outline,
+            start,
+            end: from,
+            clearance: traceClearance,
+          }) ||
+          !fitsInsideBoard({
+            outline,
+            start: to,
+            end,
+            clearance: traceClearance,
+          })
         ) {
           return false
         }
-      } else if (!fitsInsideBoard(outline, start, end, traceClearance)) {
+      } else if (
+        !fitsInsideBoard({ outline, start, end, clearance: traceClearance })
+      ) {
         return false
       }
     }
@@ -2343,12 +2374,12 @@ export class HighDensitySolverB01 extends BaseSolver {
         next.startCellId === next.endCellId &&
         next.connectionAliases.some(
           ({ startPoint, endPoint }) =>
-            !fitsInsideBoard(
-              boundary.outline,
-              startPoint,
-              endPoint,
-              boundary.traceClearance,
-            ),
+            !fitsInsideBoard({
+              outline: boundary.outline,
+              start: startPoint,
+              end: endPoint,
+              clearance: boundary.traceClearance,
+            }),
         )
       ) {
         this.error = `Route terminals cannot clear the board edge for ${this.connIdToName[next.connId]}`
@@ -2452,7 +2483,14 @@ export class HighDensitySolverB01 extends BaseSolver {
       const neighborCellId = this.neighborIds[i]!
       if (
         this.boardBoundary &&
-        !this.boardAllowsMove(seg, z, cellId, z, neighborCellId, i)
+        !this.boardAllowsMove({
+          segment: seg,
+          fromZ: z,
+          fromCell: cellId,
+          toZ: z,
+          toCell: neighborCellId,
+          neighborIndex: i,
+        })
       ) {
         continue
       }
@@ -2510,7 +2548,13 @@ export class HighDensitySolverB01 extends BaseSolver {
         if (nz === z) continue
         if (
           this.boardBoundary &&
-          !this.boardAllowsMove(seg, z, cellId, nz, cellId)
+          !this.boardAllowsMove({
+            segment: seg,
+            fromZ: z,
+            fromCell: cellId,
+            toZ: nz,
+            toCell: cellId,
+          })
         ) {
           continue
         }
