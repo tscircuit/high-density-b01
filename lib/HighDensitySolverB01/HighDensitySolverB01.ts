@@ -39,12 +39,6 @@ export interface B01BoardGeometry {
   minBoardEdgeClearance?: number
 }
 
-interface BoardBoundary {
-  outline: readonly Point2d[]
-  traceClearance: number
-  neighborChecks: Int8Array
-}
-
 type RegionName = "left" | "top" | "right" | "bottom" | "middle"
 
 const REGION_LEFT = 0
@@ -730,7 +724,10 @@ export class HighDensitySolverB01 extends BaseSolver {
   nodeWithPortPoints: NodeWithPortPoints
   obstacles: readonly HighDensityObstacle[]
   readonly boardGeometry?: B01BoardGeometry
-  private boardBoundary?: BoardBoundary
+  private boardBoundary?: {
+    outline: readonly Point2d[]
+    traceClearance: number
+  }
   highResolutionCellSize: number
   highResolutionCellThickness: number
   lowResolutionCellSize: number
@@ -782,6 +779,7 @@ export class HighDensitySolverB01 extends BaseSolver {
   neighborOffset!: Int32Array
   neighborIds!: Int32Array
   neighborCosts!: Float32Array
+  private boardEdgeMoveChecks!: Int8Array
 
   private usedCellsFlat!: Int32Array
   private sharedCellsFlat!: Array<number[] | undefined>
@@ -2250,11 +2248,8 @@ export class HighDensitySolverB01 extends BaseSolver {
     ) {
       return
     }
-    this.boardBoundary = {
-      outline: boardOutline,
-      traceClearance,
-      neighborChecks: new Int8Array(this.neighborIds.length),
-    }
+    this.boardEdgeMoveChecks = new Int8Array(this.neighborIds.length)
+    this.boardBoundary = { outline: boardOutline, traceClearance }
     for (let cellId = 0; cellId < this.planeSize; cellId++) {
       if (!this.viaAllowed[cellId]) continue
       const point = this.getCellPointInBounds(cellId)
@@ -2286,23 +2281,23 @@ export class HighDensitySolverB01 extends BaseSolver {
     toCell: number
     neighborIndex?: number
   }): boolean {
-    const { outline, traceClearance, neighborChecks } = this.boardBoundary!
+    const { outline, traceClearance } = this.boardBoundary!
     const atStart = fromZ === segment.startZ && fromCell === segment.startCellId
     const atEnd = toZ === segment.endZ && toCell === segment.endCellId
     if (!atStart && !atEnd) {
       // Via centers are filtered during setup. Grid edges are stable across
       // layers and route searches, so evaluate each edge at most once.
       if (neighborIndex === undefined) return true
-      if (neighborChecks[neighborIndex] === 0) {
+      if (this.boardEdgeMoveChecks[neighborIndex] === 0) {
         const allowed = fitsInsideBoard({
           outline,
           start: this.getCellPointInBounds(fromCell),
           end: this.getCellPointInBounds(toCell),
           clearance: traceClearance,
         })
-        neighborChecks[neighborIndex] = allowed ? 1 : -1
+        this.boardEdgeMoveChecks[neighborIndex] = allowed ? 1 : -1
       }
-      return neighborChecks[neighborIndex] === 1
+      return this.boardEdgeMoveChecks[neighborIndex] === 1
     }
     const from = this.getCellPointInBounds(fromCell)
     const to = this.getCellPointInBounds(toCell)
