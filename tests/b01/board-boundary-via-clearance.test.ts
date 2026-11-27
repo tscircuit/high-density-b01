@@ -31,10 +31,15 @@ test("B01 routes a layer change next to the physical board edge", async () => {
   const routes = solver.getOutput()
   const [route] = routes
   expect(route!.vias).toHaveLength(1)
+  const viaClearance = route!.vias[0]!.x - viaDiameter / 2 - board.bounds.minX
   const svg = getBoardBoundarySnapshotSvg({
     board,
     routes,
     framePadding: viaDiameter / 2,
+    viaClearance: {
+      measured: viaClearance,
+      required: board.minBoardEdgeClearance,
+    },
   })
   await expect(svg).toMatchSvgSnapshot(import.meta.path)
 })
