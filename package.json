@@ -56,7 +56,6 @@
     "typescript": "^5.9.3"
   },
   "peerDependencies": {
-    "@tscircuit/math-utils": "^0.0.39",
     "typescript": "^5"
   },
   "dependencies": {
