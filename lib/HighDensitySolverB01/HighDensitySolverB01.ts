@@ -32,6 +32,18 @@ type RectBounds = {
   maxY: number
 }
 
+export interface B01BoardGeometry {
+  bounds: RectBounds
+  outline?: readonly Point2d[]
+  minBoardEdgeClearance?: number
+}
+
+interface BoardBoundary {
+  outline: readonly Point2d[]
+  traceClearance: number
+  neighborChecks: Int8Array
+}
+
 type RegionName = "left" | "top" | "right" | "bottom" | "middle"
 
 const REGION_LEFT = 0
@@ -565,6 +577,47 @@ function getSquaredDistanceBetweenSegments(params: {
   )
 }
 
+function fitsInsideBoard(
+  outline: readonly Point2d[],
+  start: Point2d,
+  end: Point2d,
+  clearance: number,
+): boolean {
+  const minX = Math.min(start.x, end.x) - clearance
+  const maxX = Math.max(start.x, end.x) + clearance
+  const minY = Math.min(start.y, end.y) - clearance
+  const maxY = Math.max(start.y, end.y) + clearance
+  let inside = false
+  for (let i = 0; i < outline.length; i++) {
+    const a = outline[i]!
+    const b = outline[(i + 1) % outline.length]!
+    if (
+      a.y > start.y !== b.y > start.y &&
+      start.x < a.x + ((start.y - a.y) * (b.x - a.x)) / (b.y - a.y)
+    ) {
+      inside = !inside
+    }
+    if (
+      Math.max(a.x, b.x) < minX ||
+      Math.min(a.x, b.x) > maxX ||
+      Math.max(a.y, b.y) < minY ||
+      Math.min(a.y, b.y) > maxY
+    ) {
+      continue
+    }
+    const distance = getSquaredDistanceBetweenSegments({
+      firstStart: start,
+      firstEnd: end,
+      secondStart: a,
+      secondEnd: b,
+    })
+    // With the first endpoint inside and no boundary intersections, the
+    // entire segment is inside, including across concave parts of the board.
+    if (distance === 0 || distance < clearance ** 2) return false
+  }
+  return inside
+}
+
 function doesSegmentIntersectRect(params: {
   segmentStart: Point2d
   segmentEnd: Point2d
@@ -643,6 +696,8 @@ function doesCapsuleIntersectRect(params: {
 export interface HighDensitySolverB01Props {
   nodeWithPortPoints: NodeWithPortPoints
   obstacles: readonly HighDensityObstacle[]
+  /** Physical board geometry, independent of the local search window. */
+  boardGeometry?: B01BoardGeometry
   highResolutionCellSize?: number
   highResolutionCellThickness?: number
   lowResolutionCellSize?: number
@@ -676,6 +731,8 @@ export class HighDensitySolverB01 extends BaseSolver {
 
   nodeWithPortPoints: NodeWithPortPoints
   obstacles: readonly HighDensityObstacle[]
+  readonly boardGeometry?: B01BoardGeometry
+  private boardBoundary?: BoardBoundary
   highResolutionCellSize: number
   highResolutionCellThickness: number
   lowResolutionCellSize: number
@@ -857,6 +914,7 @@ export class HighDensitySolverB01 extends BaseSolver {
     super()
     this.nodeWithPortPoints = props.nodeWithPortPoints
     this.obstacles = props.obstacles
+    this.boardGeometry = props.boardGeometry
     this.highResolutionCellSize = props.highResolutionCellSize ?? 0.1
     this.highResolutionCellThickness = Math.max(
       1,
@@ -893,6 +951,7 @@ export class HighDensitySolverB01 extends BaseSolver {
       {
         nodeWithPortPoints: this.nodeWithPortPoints,
         obstacles: this.obstacles,
+        boardGeometry: this.boardGeometry,
         highResolutionCellSize: this.highResolutionCellSize,
         highResolutionCellThickness: this.highResolutionCellThickness,
         lowResolutionCellSize: this.lowResolutionCellSize,
@@ -967,6 +1026,7 @@ export class HighDensitySolverB01 extends BaseSolver {
       this.failed = true
       return
     }
+    this.configureBoardBoundary()
 
     this.connNameToId = new Map()
     this.connIdToName = []
@@ -2142,6 +2202,132 @@ export class HighDensitySolverB01 extends BaseSolver {
     return region.offset + row * region.cols + col
   }
 
+  private getCellPointInBounds(cellId: number): Point2d {
+    return applyAffineTransformToPoint(this.gridToBoundsTransform, {
+      x: this.cellCenterX[cellId]!,
+      y: this.cellCenterY[cellId]!,
+    })
+  }
+
+  private configureBoardBoundary(): void {
+    if (!this.boardGeometry) return
+    const { bounds, outline, minBoardEdgeClearance = 0 } = this.boardGeometry
+    const boardOutline = outline?.length
+      ? outline
+      : [
+          { x: bounds.minX, y: bounds.minY },
+          { x: bounds.maxX, y: bounds.minY },
+          { x: bounds.maxX, y: bounds.maxY },
+          { x: bounds.minX, y: bounds.maxY },
+        ]
+    if (
+      !Number.isFinite(minBoardEdgeClearance) ||
+      minBoardEdgeClearance < 0 ||
+      boardOutline.length < 3 ||
+      boardOutline.some(
+        ({ x, y }) => !Number.isFinite(x) || !Number.isFinite(y),
+      )
+    ) {
+      throw new Error("B01 received invalid physical board geometry")
+    }
+    const traceClearance = minBoardEdgeClearance + this.traceThickness / 2
+    const viaClearance = minBoardEdgeClearance + this.viaDiameter / 2
+    let minX = this.boundsMinX
+    let maxX = this.boundsMaxX
+    let minY = this.boundsMinY
+    let maxY = this.boundsMaxY
+    for (const point of this.nodeWithPortPoints.portPoints) {
+      minX = Math.min(minX, point.x)
+      maxX = Math.max(maxX, point.x)
+      minY = Math.min(minY, point.y)
+      maxY = Math.max(maxY, point.y)
+    }
+    const corners = [
+      { x: minX, y: minY },
+      { x: maxX, y: minY },
+      { x: maxX, y: maxY },
+      { x: minX, y: maxY },
+    ]
+    // Interior windows need no board checks during search.
+    if (
+      corners.every((corner, i) =>
+        fitsInsideBoard(
+          boardOutline,
+          corner,
+          corners[(i + 1) % corners.length]!,
+          Math.max(traceClearance, viaClearance),
+        ),
+      )
+    ) {
+      return
+    }
+    this.boardBoundary = {
+      outline: boardOutline,
+      traceClearance,
+      neighborChecks: new Int8Array(this.neighborIds.length),
+    }
+    for (let cellId = 0; cellId < this.planeSize; cellId++) {
+      if (!this.viaAllowed[cellId]) continue
+      const point = this.getCellPointInBounds(cellId)
+      if (!fitsInsideBoard(boardOutline, point, point, viaClearance)) {
+        this.viaAllowed[cellId] = 0
+      }
+    }
+  }
+
+  private boardAllowsMove(
+    segment: ConnectionSeg,
+    fromZ: number,
+    fromCell: number,
+    toZ: number,
+    toCell: number,
+    neighborIndex?: number,
+  ): boolean {
+    const { outline, traceClearance, neighborChecks } = this.boardBoundary!
+    const atStart = fromZ === segment.startZ && fromCell === segment.startCellId
+    const atEnd = toZ === segment.endZ && toCell === segment.endCellId
+    if (!atStart && !atEnd) {
+      // Via centers are filtered during setup. Grid edges are stable across
+      // layers and route searches, so evaluate each edge at most once.
+      if (neighborIndex === undefined) return true
+      if (neighborChecks[neighborIndex] === 0) {
+        const allowed = fitsInsideBoard(
+          outline,
+          this.getCellPointInBounds(fromCell),
+          this.getCellPointInBounds(toCell),
+          traceClearance,
+        )
+        neighborChecks[neighborIndex] = allowed ? 1 : -1
+      }
+      return neighborChecks[neighborIndex] === 1
+    }
+    const from = this.getCellPointInBounds(fromCell)
+    const to = this.getCellPointInBounds(toCell)
+    for (const alias of segment.connectionAliases) {
+      const startPort = alias.reversedFromCanonical
+        ? alias.endPoint
+        : alias.startPoint
+      const endPort = alias.reversedFromCanonical
+        ? alias.startPoint
+        : alias.endPoint
+      const start = atStart ? startPort : from
+      const end = atEnd ? endPort : to
+      if (neighborIndex === undefined) {
+        // The via stays at the grid center even when the wire starts or
+        // ends at an exact terminal position.
+        if (
+          !fitsInsideBoard(outline, start, from, traceClearance) ||
+          !fitsInsideBoard(outline, to, end, traceClearance)
+        ) {
+          return false
+        }
+      } else if (!fitsInsideBoard(outline, start, end, traceClearance)) {
+        return false
+      }
+    }
+    return true
+  }
+
   private stepOnce(): void {
     if (!this.activeConnSeg) {
       if (this.unsolvedSegs.length === 0) {
@@ -2150,6 +2336,25 @@ export class HighDensitySolverB01 extends BaseSolver {
       }
 
       const next = this.unsolvedSegs.shift()!
+      const boundary = this.boardBoundary
+      if (
+        boundary &&
+        next.startZ === next.endZ &&
+        next.startCellId === next.endCellId &&
+        next.connectionAliases.some(
+          ({ startPoint, endPoint }) =>
+            !fitsInsideBoard(
+              boundary.outline,
+              startPoint,
+              endPoint,
+              boundary.traceClearance,
+            ),
+        )
+      ) {
+        this.error = `Route terminals cannot clear the board edge for ${this.connIdToName[next.connId]}`
+        this.failed = true
+        return
+      }
       this.activeConnSeg = next
       this.activeConnId = next.connId
       // Occupancy and net ownership stay fixed for one route search.
@@ -2245,6 +2450,12 @@ export class HighDensitySolverB01 extends BaseSolver {
 
     for (let i = neighborStart; i < neighborEnd; i++) {
       const neighborCellId = this.neighborIds[i]!
+      if (
+        this.boardBoundary &&
+        !this.boardAllowsMove(seg, z, cellId, z, neighborCellId, i)
+      ) {
+        continue
+      }
       const nextFlatIdx = z * this.planeSize + neighborCellId
 
       this.computeMoveCostAndRips(
@@ -2297,6 +2508,12 @@ export class HighDensitySolverB01 extends BaseSolver {
     ) {
       for (let nz = 0; nz < this.layers; nz++) {
         if (nz === z) continue
+        if (
+          this.boardBoundary &&
+          !this.boardAllowsMove(seg, z, cellId, nz, cellId)
+        ) {
+          continue
+        }
         const nextFlatIdx = nz * this.planeSize + cellId
 
         this.computeMoveCostAndRips(
