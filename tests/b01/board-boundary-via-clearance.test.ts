@@ -38,6 +38,10 @@ test("B01 routes a layer change next to the physical board edge", async () => {
     board,
     routes,
     framePadding: viaDiameter / 2,
+    viaClearance: {
+      measured: viaClearance,
+      required: board.minBoardEdgeClearance,
+    },
   })
   await expect(svg).toMatchSvgSnapshot(import.meta.path)
 })
